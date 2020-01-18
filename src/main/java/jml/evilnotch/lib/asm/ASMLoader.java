@@ -28,7 +28,6 @@ public class ASMLoader implements IClassTransformer{
 		ITransformer last = null;
 		try
 		{
-			TransformsReg.sort();
 			for(ITransformer transformer : TransformsReg.transformers)
 			{
 				if(!transformer.canTransform(name))

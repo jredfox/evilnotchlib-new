@@ -21,7 +21,6 @@ import net.minecraft.util.ResourceLocation;
 public class TransformsReg {
 	
 	public static List<ITransformer> transformers = new ArrayList(2);
-	private static boolean sorted;
 	
 	public static void registerTransformer(String transformerClass)
 	{
@@ -34,21 +33,6 @@ public class TransformsReg {
 		{
 			t.printStackTrace();
 		}
-	}
-
-	protected static void sort() 
-	{
-		if(sorted)
-			return;
-		Collections.sort(transformers, new Comparator<ITransformer>()
-		{
-			@Override
-			public int compare(ITransformer o1, ITransformer o2) 
-			{
-				return ((Integer)o1.sortingIndex()).compareTo(o2.sortingIndex());
-			}
-		});
-		sorted = true;
 	}
 
 	public static String printIds()
@@ -91,6 +75,19 @@ public class TransformsReg {
 				((Coremod)plugin).registerTransformers();
 			}
 		}
+		TransformsReg.sort();//sort the transformers after registering them
+	}
+	
+	protected static void sort() 
+	{
+		Collections.sort(transformers, new Comparator<ITransformer>()
+		{
+			@Override
+			public int compare(ITransformer o1, ITransformer o2) 
+			{
+				return ((Integer)o1.sortingIndex()).compareTo(o2.sortingIndex());
+			}
+		});
 	}
 
 }
