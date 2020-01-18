@@ -4,8 +4,19 @@ import org.objectweb.asm.tree.ClassNode;
 
 import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraft.launchwrapper.Launch;
+import net.minecraft.util.ResourceLocation;
 
 public class ASMLoader implements IClassTransformer{
+	
+	private static boolean reg;
+	public ASMLoader()
+	{
+		if(!reg)
+		{
+			TransformsReg.registerCoreMods();
+			reg = true;
+		}
+	}
 
 	@Override
 	public byte[] transform(String oldName, String name, byte[] bytes) 

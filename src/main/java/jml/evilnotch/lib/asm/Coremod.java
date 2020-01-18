@@ -1,31 +1,33 @@
 package jml.evilnotch.lib.asm;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 
-public abstract class Coremod implements IFMLLoadingPlugin{
+public interface Coremod extends IFMLLoadingPlugin{
 	
-	public Coremod()
-	{
-		this.registerTransformers();
-	}
+	/**
+	 * minimum sorting index for your mod to work or use IFMLLoadingPlugin.DependsOn("")
+	 */
+	public static final int sortingIndexMin = 1002;
 	
-	public abstract void registerTransformers();
+	public void registerTransformers();
 
 	@Override
-	public String[] getASMTransformerClass() {return null;}
+	public default String[] getASMTransformerClass() {return null;}
 
 	@Override
-	public String getModContainerClass() {return null;}
+	public default String getModContainerClass() {return null;}
 
 	@Override
-	public String getSetupClass() {return null;}
+	public default String getSetupClass() {return null;}
 
 	@Override
-	public void injectData(Map<String, Object> data) {}
+	public default void injectData(Map<String, Object> data) {}
 
 	@Override
-	public String getAccessTransformerClass() {return null;}
-
+	public default String getAccessTransformerClass() {return null;}
+	
 }

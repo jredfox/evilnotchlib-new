@@ -4,6 +4,7 @@ import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.event.FMLLoadCompleteEvent;
 import jml.evilnotch.lib.asm.PatchedClassLoader;
+import net.minecraft.util.ResourceLocation;
 
 @Mod(modid = LibReference.MODID, version = LibReference.VERSION, name = LibReference.NAME)
 public class EvilNotchLib 

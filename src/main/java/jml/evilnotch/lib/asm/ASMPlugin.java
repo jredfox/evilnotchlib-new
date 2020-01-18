@@ -1,16 +1,14 @@
 package jml.evilnotch.lib.asm;
 
-import java.util.Map;
-
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
-import cpw.mods.fml.relauncher.IFMLLoadingPlugin.SortingIndex;
 import net.minecraft.launchwrapper.Launch;
+import net.minecraft.util.ResourceLocation;
 
 @IFMLLoadingPlugin.Name("ASMPlugin")
 @IFMLLoadingPlugin.MCVersion("1.7.10")
 @IFMLLoadingPlugin.SortingIndex(1001)
 @IFMLLoadingPlugin.TransformerExclusions("jml.evilnotch.lib.asm.")
-public class ASMPlugin extends Coremod{
+public class ASMPlugin implements Coremod{
 	
 	@Override
 	public String[] getASMTransformerClass() 

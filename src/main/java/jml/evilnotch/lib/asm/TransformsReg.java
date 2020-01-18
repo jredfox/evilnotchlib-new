@@ -1,13 +1,21 @@
 package jml.evilnotch.lib.asm;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.objectweb.asm.tree.ClassNode;
 
+import cpw.mods.fml.relauncher.CoreModManager;
+import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
+import jml.evilnotch.lib.reflect.ReflectionHandler;
+import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraft.launchwrapper.Launch;
+import net.minecraft.launchwrapper.LaunchClassLoader;
 import net.minecraft.util.ResourceLocation;
 
 public class TransformsReg {
@@ -15,33 +23,17 @@ public class TransformsReg {
 	public static List<ITransformer> transformers = new ArrayList(2);
 	private static boolean sorted;
 	
-	static
-	{
-		Launch.classLoader.addClassLoaderExclusion("net.minecraft.util.ResourceLocation");
-	}
-	
 	public static void registerTransformer(String transformerClass)
 	{
 		try
 		{
 			ITransformer transformer = (ITransformer) Launch.classLoader.loadClass(transformerClass).newInstance();
-			if(!contains(transformer))
-				transformers.add(transformer);
-			else
-				System.out.println("transformer dupe found skipping:\t" + transformer.id() + ", " + transformer.getClass());
+			transformers.add(transformer);
 		}
 		catch(Throwable t)
 		{
 			t.printStackTrace();
 		}
-	}
-	
-	public static boolean contains(ITransformer compare) 
-	{
-		for(ITransformer t : transformers)
-			if(t.id().equals(compare.id()))
-				return true;
-		return false;
 	}
 
 	protected static void sort() 
@@ -83,6 +75,22 @@ public class TransformsReg {
 		for(ITransformer t : transformers)
 			li.add(t.id());
 		return li;
+	}
+
+	public static void registerCoreMods() 
+	{
+		List<Object> list = (List<Object>) ReflectionHandler.get(ReflectionHandler.getField(CoreModManager.class, "loadPlugins"), null);
+		Class wrapperClass = ReflectionHandler.getClass("cpw.mods.fml.relauncher.CoreModManager$FMLPluginWrapper");
+		Field cmodGetter = ReflectionHandler.getField(wrapperClass, "coreModInstance");
+		for(Object wrapper : list)
+		{
+			IFMLLoadingPlugin plugin = (IFMLLoadingPlugin) ReflectionHandler.get(cmodGetter, wrapper);
+			if(plugin instanceof Coremod)
+			{
+				System.out.println("Coremod found:" + plugin.getClass().getName());
+				((Coremod)plugin).registerTransformers();
+			}
+		}
 	}
 
 }

@@ -3,7 +3,7 @@
   "modid": "evilnotchlib",
   "name": "Evil Notch Lib",
   "description": "A Java and Forge Library that makes the game have stability and gives mods the opertunity to code with ease",
-  "version": "a1.0",
+  "version": "a1.0.2",
   "mcversion": "1.7.10",
   "url": "",
   "updateUrl": "",
