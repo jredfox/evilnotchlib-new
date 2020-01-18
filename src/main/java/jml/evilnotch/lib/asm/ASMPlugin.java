@@ -10,7 +10,7 @@ import net.minecraft.launchwrapper.Launch;
 @IFMLLoadingPlugin.MCVersion("1.7.10")
 @IFMLLoadingPlugin.SortingIndex(1001)
 @IFMLLoadingPlugin.TransformerExclusions("jml.evilnotch.lib.asm.")
-public class ASMPlugin extends CoreMod{
+public class ASMPlugin extends Coremod{
 	
 	@Override
 	public String[] getASMTransformerClass() 
