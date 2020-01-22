@@ -3,6 +3,7 @@ package jml.evilnotch.lib.asm;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,17 +38,17 @@ import net.minecraft.launchwrapper.Launch;
 
 public class ASMHelper 
 {	
-	public static Map<String, ClassNode> classNodes = new HashMap();//input to classNode
+	public static Map<String, ClassNode> classNodes = new HashMap();//input to classNode gets cleared when a MCWriter gets it's byte array
 	
 	/**
-	 * srg support doesn't patch local vars nor instructions
+	 * doesn't patch local variable or method calls
 	 */
 	public static MethodNode replaceMethod(ClassNode node, String input, String name, String desc)
 	{
 		try
 		{
-			MethodNode origin = getMethodNode(node, name, desc);
-			MethodNode toReplace = getMethodNode(input, name, desc);
+			MethodNode origin = getMethod(node, name, desc);
+			MethodNode toReplace = getMethod(input, name, desc);
 			origin.instructions = toReplace.instructions;
 			origin.localVariables = toReplace.localVariables;
 			origin.annotationDefault = toReplace.annotationDefault;
@@ -143,44 +144,101 @@ public class ASMHelper
 		 org.visibleTypeAnnotations = node.visibleTypeAnnotations;
 	}
 	
-	public static MCWriter getClassWriter(ClassNode classNode) 
+	public static MCWriter getClassWriter(ClassNode node) 
 	{
 		MCWriter writer = new MCWriter();
-		classNode.accept(writer);
+		node.accept(writer);
 		return writer;
 	}
 	
 	/**
-	 * if you don't need to compute frames and compute maxes aka something like a reobfuscate instead of actual edits
+	 * if you don't need to compute frames or maxes as only strings have changed
 	 */
-	public static MCWriter getWriterForReob(ClassNode classNode)
+	public static MCWriter getWriterForReob(ClassNode node)
 	{
 		MCWriter writer = new MCWriter(0);
-		classNode.accept(writer);
+		node.accept(writer);
 		return writer;
+	}
+	
+	public static void patchMethod(MethodNode method, String name, String oldName)
+	{
+		patchMethod(method, name, oldName, false);
+	}
+	
+	/**
+	 * patch a method you can call this directly after replacing it
+	 */
+	public static void patchMethod(MethodNode method, String name, String oldName, boolean patchStatic)
+	{
+		patchInsns(method, name, oldName, patchStatic);
+		patchThis(method, name);
+	}
+	
+	/**
+	 * patch all references on the local variable table instanceof of this to a new class
+	 */
+	public static void patchThis(MethodNode method, String name)
+	{
+		LocalVariableNode local = ASMHelper.getLocalVarByName(method, "this");
+		local.desc = toASMDesc(name);
+	}
+
+	/**
+	 * patch previous object owner instructions to new owner with filtering out static fields/method calls
+	 */
+	public static void patchInsns(MethodNode method, String classNew, String classOld, boolean patchStatic) 
+	{
+		classNew = toASMClass(classNew);
+		classOld = toASMClass(classOld);
+		
+		for(AbstractInsnNode ab : method.instructions.toArray())
+		{
+			if(ab instanceof MethodInsnNode)
+			{
+				MethodInsnNode min = (MethodInsnNode)ab;
+				if(min.owner.equals(classOld) && (!isStaticMethod(min) || patchStatic) )
+					min.owner = classNew;
+			}
+			else if(ab instanceof FieldInsnNode)
+			{
+				FieldInsnNode fin = (FieldInsnNode)ab;
+				if(fin.owner.equals(classOld) && (!isStaticFeild(fin) || patchStatic) )
+					fin.owner = classNew;
+			}
+		}
+	}
+	
+	public static String toASMClass(String name)
+	{
+		return name.replace('.', '/');
+	}
+	
+	
+	public static String toASMDesc(String name) 
+	{
+		return "L" + toASMClass(name) + ";";
 	}
 	
 	/**
 	 * get a method node from a possble cached classnode
 	 */
-	public static MethodNode getMethodNode(String input, String name, String desc) throws IOException 
+	public static MethodNode getMethod(String input, String name, String desc) throws IOException 
 	{
-		return getMethodNode(getClassNodeCached(input), name, desc);
+		return getMethod(getClassNodeCached(input), name, desc);
 	}
 	
-	public static MethodNode getMethodNode(ClassNode node, String name, String desc) 
+	public static MethodNode getMethod(ClassNode node, String name, String desc) 
 	{
 		for (MethodNode method : node.methods)
 		{
 			if (method.name.equals(name) && method.desc.equals(desc))
-			{
 				return method;
-			}
 		}
 		return null;
 	}
 	
-	public static FieldNode getFieldNode(ClassNode node, String name)
+	public static FieldNode getField(ClassNode node, String name)
 	{
 		for(FieldNode f : node.fields)
 			if(f.name.equals(name))
@@ -188,86 +246,12 @@ public class ASMHelper
 		return null;
 	}
 	
-	public static void patchMethod(MethodNode node, String className, String oldClassName)
-	{
-		patchMethod(node, className, oldClassName, false);
-	}
-	
-	/**
-	 * patch a method you can call this directly after replacing it
-	 */
-	public static void patchMethod(MethodNode node, String className, String oldClassName, boolean patchStatic)
-	{
-		patchInstructions(node, className, oldClassName, patchStatic);
-		patchLocals(node, className);
-	}
-	
-	/**
-	 * patch all references on the local variable table instanceof of this to a new class
-	 */
-	public static void patchLocals(MethodNode method, String name)
-	{
-		for(LocalVariableNode lvn : method.localVariables)
-		{
-			if(lvn.name.equals("this"))
-			{
-				lvn.desc = "L" + name.replace('.', '/') + ";";
-				break;
-			}
-		}
-	}
-	
-	/**
-	 * patch previous object owner instructions to new owner with filtering out static fields/method calls
-	 */
-	public static void patchInstructions(MethodNode mn, String class_name, String class_old,boolean patchStatic) 
-	{
-		String className = class_name.replace('.', '/');
-		String oldClassName = class_old.replace('.', '/');
-		
-		for(AbstractInsnNode ain : mn.instructions.toArray())
-		{
-			if(ain instanceof MethodInsnNode)
-			{
-				MethodInsnNode min = (MethodInsnNode)ain;
-				if(min.owner.equals(oldClassName) && (!isStaticMethod(min) || patchStatic) )
-				{
-					min.owner = className;
-				}
-			}
-			else if(ain instanceof FieldInsnNode)
-			{
-				FieldInsnNode fin = (FieldInsnNode)ain;
-				if(fin.owner.equals(oldClassName) && (!isStaticFeild(fin) || patchStatic) )
-				{
-					fin.owner = className;
-				}
-			}
-		}
-	}
-	
-	/**
-	 * use this in your asm to return true
-	 */
-	public static boolean isTrue()
-	{
-		return true;
-	}
-	
-	/**
-	 * use this is your asm to return false
-	 */
-	public static boolean isFalse()
-	{
-		return false;
-	}
-	
 	/**
 	 * add an interface to a class
 	 */
-	public static void addInterface(ClassNode node,String theInterface)
+	public static void addInterface(ClassNode node, String name)
 	{
-		node.interfaces.add(theInterface);
+		node.interfaces.add(name);
 	}
 	
 	/**
@@ -290,12 +274,26 @@ public class ASMHelper
 	/**
 	 * don't add the method if it's already has it
 	 */
-	public static void addIfMethod(ClassNode classNode, String input, String name, String desc) throws IOException
+	public static void addIfMethod(ClassNode node, String input, String name, String desc) throws IOException
 	{
-		MethodNode method = getMethodNode(input, name, desc);
+		MethodNode method = getMethod(input, name, desc);
 		Validate.nonNull(method);
-		if(!containsMethod(classNode, name, desc))
-			classNode.methods.add(method);
+		addIfMethod(node, method);
+	}
+	
+	/**
+	 * add a brand new method node into the classNode
+	 */
+	public static void addIfMethod(ClassNode node, int access, String name, String desc) 
+	{
+		MethodNode method = new MethodNode(access, name, desc, null, null);
+		addIfMethod(node, method);
+	}
+
+	public static void addIfMethod(ClassNode node, MethodNode method) 
+	{
+		if(!containsMethod(node, method))
+			node.methods.add(method);
 	}
 
 	/**
@@ -304,20 +302,25 @@ public class ASMHelper
 	 */
 	public static MethodNode addMethod(ClassNode node, String input, String name, String desc) throws IOException 
 	{
-		MethodNode method = getMethodNode(input, name, desc);
+		MethodNode method = getMethod(input, name, desc);
 		Validate.nonNull(method);
 		node.methods.add(method);
 		return method;
+	}
+	
+	public static boolean containsMethod(ClassNode node, MethodNode method) 
+	{
+		return containsMethod(node, method.name, method.desc);
 	}
 	
 	/**
 	 * search from the class node if it contains the method
 	 * @return
 	 */
-	public static boolean containsMethod(ClassNode classNode, String name, String desc) 
+	public static boolean containsMethod(ClassNode node, String name, String desc) 
 	{
-		for(MethodNode node : classNode.methods)
-			if(node.name.equals(name) && node.desc.equals(desc))
+		for(MethodNode m : node.methods)
+			if(m.name.equals(name) && m.desc.equals(desc))
 				return true;
 		return false;
 	}
@@ -328,14 +331,14 @@ public class ASMHelper
 	 */
 	public static void removeMethod(ClassNode node, String name, String desc) throws IOException
 	{
-		MethodNode method = getMethodNode(node, name, desc);
+		MethodNode method = getMethod(node, name, desc);
 		if(method != null)
 			node.methods.remove(method);
 	}
 	
 	public static void removeField(ClassNode node, String name) 
 	{
-		FieldNode f = getFieldNode(node, name);
+		FieldNode f = getField(node, name);
 		if(f != null)
 			node.fields.remove(f);
 	}
@@ -343,13 +346,13 @@ public class ASMHelper
 	/**
 	 * find the first instruction to inject
 	 */
-	public static AbstractInsnNode getFirstInstruction(MethodNode method,int opcode) 
+	public static AbstractInsnNode getFirstInsn(MethodNode method, int opcode) 
 	{
-		for(AbstractInsnNode node : method.instructions.toArray())
+		for(AbstractInsnNode ab : method.instructions.toArray())
 		{
-			if(node.getOpcode() == opcode)
+			if(ab.getOpcode() == opcode)
 			{
-				return node;
+				return ab;
 			}
 		}
 		return null;
@@ -358,7 +361,7 @@ public class ASMHelper
 	/**
 	 * getting the first instanceof of this will usually tell you where the initial injection point should be after
 	 */
-	public static LineNumberNode getFirstInstruction(MethodNode method) 
+	public static LineNumberNode getFirstInsn(MethodNode method) 
 	{
 		for(AbstractInsnNode obj : method.instructions.toArray())
 			if(obj instanceof LineNumberNode)
@@ -366,7 +369,7 @@ public class ASMHelper
 		return null;
 	}
 	
-	public static AbstractInsnNode getLastInstruction(MethodNode method)
+	public static AbstractInsnNode getLastInsn(MethodNode method)
 	{
 		AbstractInsnNode[] arr = method.instructions.toArray();
 		for(int i=arr.length;i>=0;i--)
@@ -383,9 +386,14 @@ public class ASMHelper
 	/**
 	 * get a constructor since they are MethodNodes
 	 */
-	public static MethodNode getConstructionNode(ClassNode classNode, String desc) 
+	public static MethodNode getConstructor(ClassNode node, String desc) 
 	{
-		return getMethodNode(classNode, "<init>", desc);
+		return getMethod(node, "<init>", desc);
+	}
+	
+	public static MethodNode getClassInit(ClassNode node) 
+	{
+		return getMethod(node, "<clinit>", "()V");
 	}
 	
 	/**
@@ -393,79 +401,80 @@ public class ASMHelper
 	 * not this won't check if the fields are instantiated before calling your bytecode if you need to use
 	 * fields for your asm you will have to find a injection point further down the construction method
 	 */
-	public static AbstractInsnNode getFirstCtrInsn(MethodNode node)
+	public static AbstractInsnNode firstCtrInsn(MethodNode method)
 	{
-		return ASMHelper.getFirstInstruction(node, Opcodes.INVOKESPECIAL);
-	}
-	
-	public static MethodNode getClassInitNode(ClassNode classNode) 
-	{
-		return getMethodNode(classNode, "<clinit>", "()V");
+		return ASMHelper.getFirstInsn(method, Opcodes.INVOKESPECIAL);
 	}
 	
 	/**
 	 * helpful for finding injection point to the end of constructors
 	 */
-	public static AbstractInsnNode getLastPutField(MethodNode mn) 
+	public static AbstractInsnNode getLastPutField(MethodNode method) 
 	{
-		return getLastInstruction(mn, Opcodes.PUTFIELD);
+		return getLastInsn(method, Opcodes.PUTFIELD);
 	}
 	
 	/**
 	 * optimized way of getting a last instruction
 	 */
-	public static AbstractInsnNode getLastInstruction(MethodNode method, int opCode) 
+	public static AbstractInsnNode getLastInsn(MethodNode method, int opCode) 
 	{
 		AbstractInsnNode[] arr = method.instructions.toArray();
 		for(int i=arr.length-1;i>=0;i--)
 		{
-			AbstractInsnNode node = arr[i];
-			if(node.getOpcode() == opCode)
-				return node;
+			AbstractInsnNode ab = arr[i];
+			if(ab.getOpcode() == opCode)
+				return ab;
 		}
 		return null;
 	}
 	
 	/**
-	 * add a brand new method node into the classNode
-	 */
-	public static void addMethodNodeIf(ClassNode classNode, int opcode, String name, String desc) 
-	{
-		if(containsMethod(classNode, name, desc))
-		{
-			System.out.println("returing class has method already!" + name + "," + desc);
-			return;
-		}
-		MethodNode node = new MethodNode(opcode, name, desc, null, null);
-		classNode.methods.add(node);
-	}
-	
-	/**
 	 * get a local variable index by it's owner name
 	 */
-	public static int getLocalVarIndexFromOwner(MethodNode method, String owner, String name) 
+	public static int getLocalVarIndex(MethodNode method, String owner, String name) 
 	{
-		for(LocalVariableNode node : method.localVariables)
+		for(LocalVariableNode local : method.localVariables)
 		{
-			if(node.desc.equals(owner) && node.name.equals(name))
-				return node.index;
+			if(local.desc.equals(owner) && local.name.equals(name))
+				return local.index;
 		}
 		return -1;
 	}
 	
-	public static String toString(FieldNode node) 
+	public static int getLocalVarIndexByName(MethodNode method, String name) 
 	{
-		return node.name + " desc:" + node.desc + " signature:" + node.signature + " access:" + node.access;
+		for(LocalVariableNode local : method.localVariables)
+		{
+			if(local.name.equals(name))
+				return local.index;
+		}
+		return -1;
+	}
+	
+	public static LocalVariableNode getLocalVar(MethodNode method, String owner, String name)
+	{
+		return method.localVariables.get(getLocalVarIndex(method, owner, name));
+	}
+	
+	public static LocalVariableNode getLocalVarByName(MethodNode method, String name)
+	{
+		return method.localVariables.get(getLocalVarIndexByName(method, name));
+	}
+	
+	public static String toString(FieldNode field) 
+	{
+		return field.name + " desc:" + field.desc + " signature:" + field.signature + " access:" + field.access;
  	}
 	
-	public static String toString(MethodNode node) 
+	public static String toString(MethodNode method) 
 	{
-		return node.name + " desc:" + node.desc + " signature:" + node.signature + " access:" + node.access;
+		return method.name + " desc:" + method.desc + " signature:" + method.signature + " access:" + method.access;
  	}
 
-	public static MethodInsnNode getLastMethodInsn(MethodNode node, MethodInsnNode compare) 
+	public static MethodInsnNode getLastMethodInsn(MethodNode method, MethodInsnNode compare) 
 	{
-		AbstractInsnNode[] list = node.instructions.toArray();
+		AbstractInsnNode[] list = method.instructions.toArray();
 		for(int i = list.length-1; i >=0 ; i--)
 		{
 			AbstractInsnNode ab = list[i];
@@ -477,9 +486,9 @@ public class ASMHelper
 		return null;
 	}
 	
-	public static FieldInsnNode getLastFieldInsn(MethodNode node, FieldInsnNode compare) 
+	public static FieldInsnNode getLastFieldInsn(MethodNode method, FieldInsnNode compare) 
 	{
-		AbstractInsnNode[] list = node.instructions.toArray();
+		AbstractInsnNode[] list = method.instructions.toArray();
 		for(int i = list.length-1; i >=0 ; i--)
 		{
 			AbstractInsnNode ab = list[i];
@@ -491,38 +500,310 @@ public class ASMHelper
 		return null;
 	}
 	
-	public static boolean equals(MethodInsnNode obj1, Object o2)
+	public static boolean equals(MethodInsnNode m1, AbstractInsnNode ab)
 	{
-		if(!(o2 instanceof MethodInsnNode))
+		if(!(ab instanceof MethodInsnNode))
 			return false;
-		MethodInsnNode obj2 = (MethodInsnNode)o2;
-		return obj1.getOpcode() == obj2.getOpcode() && obj1.name.equals(obj2.name) && obj1.desc.equals(obj2.desc) && obj1.owner.equals(obj2.owner) && obj1.itf == obj2.itf;
+		MethodInsnNode m2 = (MethodInsnNode)ab;
+		return m1.getOpcode() == m2.getOpcode() && m1.name.equals(m2.name) && m1.desc.equals(m2.desc) && m1.owner.equals(m2.owner) && m1.itf == m2.itf;
 	}
 	
-	public static boolean equals(FieldInsnNode obj1, Object o2)
+	public static boolean equals(FieldInsnNode f1, AbstractInsnNode ab)
 	{
-		if(!(o2 instanceof FieldInsnNode))
+		if(!(ab instanceof FieldInsnNode))
 			return false;
-		FieldInsnNode obj2 = (FieldInsnNode)o2;
-		return obj1.getOpcode() == obj2.getOpcode() && obj1.name.equals(obj2.name) && obj1.desc.equals(obj2.desc) && obj1.owner.equals(obj2.owner);
+		FieldInsnNode f2 = (FieldInsnNode)ab;
+		return f1.getOpcode() == f2.getOpcode() && f1.name.equals(f2.name) && f1.desc.equals(f2.desc) && f1.owner.equals(f2.owner);
 	}
 	
-	public static boolean equals(FieldNode obj1, FieldNode obj2)
+	public static boolean equals(LdcInsnNode l1, AbstractInsnNode ab) 
 	{
-		return obj1.name.equals(obj2.name) && obj1.desc.equals(obj2.desc);
+		if(!(ab instanceof LdcInsnNode))
+			return false;
+		LdcInsnNode l2 = (LdcInsnNode)ab;
+		return l1.cst.equals(l2.cst);
 	}
 	
-	public static boolean equals(MethodNode obj1, MethodNode obj2)
+	public static boolean equals(FieldNode f1, FieldNode f2)
 	{
-		return obj1.name.equals(obj2.name) && obj1.desc.equals(obj2.desc);
+		return f1.name.equals(f2.name) && f1.desc.equals(f2.desc);
 	}
+	
+	public static boolean equals(MethodNode m1, MethodNode m2)
+	{
+		return m1.name.equals(m2.name) && m1.desc.equals(m2.desc);
+	}
+	
+	public static FieldInsnNode getFirstFieldInsn(MethodNode method, FieldInsnNode field) 
+	{
+		for(AbstractInsnNode ab : method.instructions.toArray())
+		{
+			if(ASMHelper.equals(field, ab))
+			{
+				return (FieldInsnNode) ab;
+			}
+		}
+		return null;
+	}
+	
+	public static MethodInsnNode getFirstMethodInsn(MethodNode method, MethodInsnNode field) 
+	{
+		for(AbstractInsnNode ab : method.instructions.toArray())
+		{
+			if(ASMHelper.equals(field, ab))
+			{
+				return (MethodInsnNode) ab;
+			}
+		}
+		return null;
+	}
+	
+	public static LdcInsnNode getFirstLdcInsn(MethodNode method, LdcInsnNode ldc) 
+	{
+		for(AbstractInsnNode ab : method.instructions.toArray())
+		{
+			if(ASMHelper.equals(ldc, ab))
+			{
+				return (LdcInsnNode) ab;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * get the standard recommended input stream for asm
+	 */
+	public static String getInputStream(String modid, String simpleName) 
+	{
+		return "assets/" + modid + "/asm/" + (ObfHelper.isObf ? "srg/" : "deob/") + simpleName;
+	}
+	
+	/**
+	 * get a classes simple name without loading it
+	 */
+	public static String getSimpleName(String clazz)
+	{
+		String[] args = clazz.split("\\.");
+		return args[args.length-1];
+	}
+
+	public static JumpInsnNode getNextJumpInsn(AbstractInsnNode starting) 
+	{
+		AbstractInsnNode k = starting;
+		while(k != null)
+		{
+			k = k.getNext();
+			if(k instanceof JumpInsnNode)
+				return (JumpInsnNode) k;
+		}
+		return null;
+	}
+	
+	public static FieldInsnNode getNextFieldInsn(AbstractInsnNode starting) 
+	{
+		AbstractInsnNode k = starting;
+		while(k != null)
+		{
+			k = k.getNext();
+			if(k instanceof FieldInsnNode)
+				return (FieldInsnNode) k;
+		}
+		return null;
+	}
+	
+	public static FieldInsnNode getNextFieldInsn(AbstractInsnNode starting, FieldInsnNode compare) 
+	{
+		AbstractInsnNode k = starting;
+		while(k != null)
+		{
+			k = k.getNext();
+			if(k instanceof FieldInsnNode && equals(compare, k))
+				return (FieldInsnNode) k;
+		}
+		return null;
+	}
+	
+	public static MethodInsnNode getNextMethodInsn(AbstractInsnNode starting, MethodInsnNode compare) 
+	{
+		AbstractInsnNode k = starting;
+		while(k != null)
+		{
+			k = k.getNext();
+			if(k instanceof MethodInsnNode && equals(compare, k))
+				return (MethodInsnNode) k;
+		}
+		return null;
+	}
+	
+	public static MethodInsnNode getNextMethodInsn(AbstractInsnNode starting) 
+	{
+		AbstractInsnNode k = starting;
+		while(k != null)
+		{
+			k = k.getNext();
+			if(k instanceof MethodInsnNode)
+				return (MethodInsnNode) k;
+		}
+		return null;
+	}
+
+	public static IntInsnNode getNextIntInsn(AbstractInsnNode ab) 
+	{
+		while(ab != null)
+		{
+			ab = ab.getNext();
+			if(ab instanceof IntInsnNode)
+				return (IntInsnNode) ab;
+		}
+		return null;
+	}
+
+	public static AbstractInsnNode getNextInsn(AbstractInsnNode ab, int opcode) 
+	{
+		while(ab != null)
+		{
+			ab = ab.getNext();
+			if(ab != null && ab.getOpcode() == opcode)
+				return ab;
+		}
+		return null;
+	}
+	
+	/**
+	 * grab a push code for a num value
+	 */
+	public static AbstractInsnNode getPushInsn(int value) throws IllegalArgumentException
+	{
+		if(value <= Byte.MAX_VALUE)
+			return new IntInsnNode(Opcodes.BIPUSH, value);
+		if(value <= Short.MAX_VALUE)
+			return new IntInsnNode(Opcodes.SIPUSH, value);
+		return new LdcInsnNode(value);
+	}
+
+	/**
+	 * make sure the start and end are fetched directly from the method node
+	 */
+	public static void removeInsn(MethodNode method, AbstractInsnNode start, AbstractInsnNode end) 
+	{
+		while(start != end)
+		{
+			AbstractInsnNode next = start.getNext();
+			method.instructions.remove(start);
+			start = next;
+		}
+		method.instructions.remove(end);
+	}
+	
+	/**
+	 * works if no other transformers editing bytecode so really not recommended to use. 
+	 * only use for debugging or deob with no other core mods enabled
+	 */
+	@Deprecated
+	public static void removeInsn(MethodNode method, AbstractInsnNode start, int size) 
+	{
+		for(int i=0; i < size; i++)
+		{
+			AbstractInsnNode next = start.getNext();
+			method.instructions.remove(start);
+			start = next;
+		}
+	}
+	
+	public static void clearVoidMethod(MethodNode method) 
+	{
+		clearMethod(method);
+		method.instructions.add(new InsnNode(Opcodes.RETURN));
+	}
+
+	/**
+	 * warning if you clear a method you must input the return type manually
+	 */
+	public static void clearMethod(MethodNode method) 
+	{
+		LineNumberNode line = ASMHelper.getFirstInsn(method);
+		method.instructions.clear();
+		LabelNode label = new LabelNode();
+		method.instructions.add(label);
+		method.instructions.add(new LineNumberNode(line.line, label));
+	}
+
+	public static void clearNextThrowable(MethodNode method, String desc_exception) 
+	{
+		AbstractInsnNode start = null;
+		AbstractInsnNode end = null;
+		for(AbstractInsnNode ab : method.instructions.toArray())
+		{
+			if(Opcodes.NEW == ab.getOpcode())
+			{
+				TypeInsnNode type = (TypeInsnNode)ab;
+				if(type.desc.equals(desc_exception))
+				{
+					start = ab;
+					end = ASMHelper.getNextInsn(start, Opcodes.ATHROW);
+					break;
+				}
+			}
+		}
+		if(start != null)
+			ASMHelper.removeInsn(method, start, end);
+	}
+	
+	private static Field opField = ReflectionHandler.getField(AbstractInsnNode.class, "opcode");
+	/**
+	 * use this if you can't find a setter for something extending AbstractInsnNode
+	 */
+	public static void setOpcode(AbstractInsnNode ab, int opcode)
+	{
+		ReflectionHandler.set(opField, ab, opcode);
+	}
+	
+	/**
+	 * this will determine if the node is static or not
+	 */
+	public static boolean isStaticMethod(MethodInsnNode method) 
+	{
+		int opcode = method.getOpcode();
+		return Opcodes.INVOKESTATIC == opcode;
+	}
+	
+	/**
+	 *this will determine if the node is static or not
+	 */
+	public static boolean isStaticFeild(FieldInsnNode field) 
+	{
+		int opcode = field.getOpcode();
+		return Opcodes.GETSTATIC == opcode || Opcodes.PUTSTATIC == opcode;
+	}
+
+	public static boolean isReturnOpcode(int opcode)
+	{
+		return opcode == Opcodes.RETURN || opcode == Opcodes.ARETURN || opcode == Opcodes.DRETURN || opcode == Opcodes.FRETURN || opcode == Opcodes.IRETURN || opcode == Opcodes.LRETURN;
+	}
+	
+	/**
+	 * use this in your asm to return true
+	 */
+	public static boolean isTrue()
+	{
+		return true;
+	}
+	
+	/**
+	 * use this is your asm to return false
+	 */
+	public static boolean isFalse()
+	{
+		return false;
+	}
+	
 	
 	/**
 	 * dumps a file from memory
 	 */
-	public static void dumpFile(String name, ClassWriter classWriter) throws IOException 
+	public static void dumpFile(String name, ClassWriter writer) throws IOException 
 	{
-		dumpFile(name, classWriter.toByteArray());
+		dumpFile(name, writer.toByteArray());
 	}
 	
 	/**
@@ -536,6 +817,9 @@ public class ASMHelper
     	FileUtils.writeByteArrayToFile(f, bytes);
 	}
 	
+	/**
+	 * Launch.minecraftHome is null in deob and is valid in ob
+	 */
 	public static File getHome()
 	{
 		return Launch.minecraftHome != null ? Launch.minecraftHome : new File(System.getProperty("user.dir"));
@@ -543,7 +827,7 @@ public class ASMHelper
 	
 	public static File getConfig()
 	{
-		return new File(getHome(), "config");
+		return new File(ASMHelper.getHome(), "config");
 	}
 
 	public static String getMethodDescriptor(Class clazz, String name, Class... params)
@@ -589,231 +873,5 @@ public class ASMHelper
 	    	return c.getName().replace('.', '/');
 	    }
 	    return ('L' + c.getName() + ';').replace('.', '/');
-	}
-	
-	public static AbstractInsnNode getFirstFieldInsn(MethodNode node, FieldInsnNode field) 
-	{
-		for(AbstractInsnNode ab : node.instructions.toArray())
-		{
-			if(ASMHelper.equals(field, ab))
-			{
-				return ab;
-			}
-		}
-		return null;
-	}
-	
-	public static AbstractInsnNode getFirstMethodInsn(MethodNode node, MethodInsnNode field) 
-	{
-		for(AbstractInsnNode ab : node.instructions.toArray())
-		{
-			if(ASMHelper.equals(field, ab))
-			{
-				return ab;
-			}
-		}
-		return null;
-	}
-	
-	/**
-	 * get the standard recommended input stream for asm
-	 */
-	public static String getInputStream(String modid, String clazzName) 
-	{
-		return "assets/" + modid + "/asm/" + (ObfHelper.isObf ? "srg/" : "deob/") + clazzName;
-	}
-	
-	/**
-	 * get a classes simple name without loading it
-	 */
-	public static String getSimpleName(String clazz)
-	{
-		String[] args = clazz.split("\\.");
-		return args[args.length-1];
-	}
-
-	public static JumpInsnNode nextJumpInsnNode(AbstractInsnNode starting) 
-	{
-		AbstractInsnNode k = starting;
-		while(k != null)
-		{
-			k = k.getNext();
-			if(k instanceof JumpInsnNode)
-				return (JumpInsnNode) k;
-		}
-		return null;
-	}
-	
-	public static FieldInsnNode nextFieldInsnNode(AbstractInsnNode starting) 
-	{
-		AbstractInsnNode k = starting;
-		while(k != null)
-		{
-			k = k.getNext();
-			if(k instanceof FieldInsnNode)
-				return (FieldInsnNode) k;
-		}
-		return null;
-	}
-	
-	public static FieldInsnNode nextFieldInsnNode(AbstractInsnNode starting, FieldInsnNode compare) 
-	{
-		AbstractInsnNode k = starting;
-		while(k != null)
-		{
-			k = k.getNext();
-			if(k instanceof FieldInsnNode && equals(compare, k))
-				return (FieldInsnNode) k;
-		}
-		return null;
-	}
-	
-	public static MethodInsnNode nextMethodInsnNode(AbstractInsnNode starting, MethodInsnNode compare) 
-	{
-		AbstractInsnNode k = starting;
-		while(k != null)
-		{
-			k = k.getNext();
-			if(k instanceof MethodInsnNode && equals(compare, k))
-				return (MethodInsnNode) k;
-		}
-		return null;
-	}
-	
-	public static MethodInsnNode nextMethodInsnNode(AbstractInsnNode starting) 
-	{
-		AbstractInsnNode k = starting;
-		while(k != null)
-		{
-			k = k.getNext();
-			if(k instanceof MethodInsnNode)
-				return (MethodInsnNode) k;
-		}
-		return null;
-	}
-
-	public static IntInsnNode nextIntInsn(AbstractInsnNode ab) 
-	{
-		while(ab != null)
-		{
-			ab = ab.getNext();
-			if(ab instanceof IntInsnNode)
-				return (IntInsnNode) ab;
-		}
-		return null;
-	}
-
-	public static AbstractInsnNode nextInsn(AbstractInsnNode ab, int opcode) 
-	{
-		while(ab != null)
-		{
-			ab = ab.getNext();
-			if(ab != null && ab.getOpcode() == opcode)
-				return ab;
-		}
-		return null;
-	}
-	
-	/**
-	 * grab a push code for a num value
-	 */
-	public static AbstractInsnNode getPush(int value) throws IllegalArgumentException
-	{
-		if(value <= Byte.MAX_VALUE)
-			return new IntInsnNode(Opcodes.BIPUSH, value);
-		if(value <= Short.MAX_VALUE)
-			return new IntInsnNode(Opcodes.SIPUSH, value);
-		return new LdcInsnNode(value);
-	}
-
-	/**
-	 * make sure the start and end are fetched directly from the method node
-	 */
-	public static void removeInsn(MethodNode node, AbstractInsnNode start, AbstractInsnNode end) 
-	{
-		while(start != end)
-		{
-			AbstractInsnNode next = start.getNext();
-			node.instructions.remove(start);
-			start = next;
-		}
-		node.instructions.remove(end);
-	}
-	
-	/**
-	 * works if no other transformers editing bytecode so really not recommended to use. 
-	 * only use for debugging or deob with no other core mods enabled
-	 */
-	@Deprecated
-	public static void removeInsn(MethodNode node, AbstractInsnNode start, int size) 
-	{
-		for(int i=0; i < size; i++)
-		{
-			AbstractInsnNode next = start.getNext();
-			node.instructions.remove(start);
-			start = next;
-		}
-	}
-	
-	public static void clearVoidMethod(MethodNode method) 
-	{
-		clearMethod(method);
-		method.instructions.add(new InsnNode(Opcodes.RETURN));
-	}
-
-	/**
-	 * warning if you clear a method you must input the return type manually
-	 */
-	public static void clearMethod(MethodNode method) 
-	{
-		LineNumberNode line = ASMHelper.getFirstInstruction(method);
-		method.instructions.clear();
-		LabelNode label = new LabelNode();
-		method.instructions.add(label);
-		method.instructions.add(new LineNumberNode(line.line, label));
-	}
-
-	public static void clearNextThrowable(MethodNode method, String desc_exception) 
-	{
-		AbstractInsnNode start = null;
-		AbstractInsnNode end = null;
-		for(AbstractInsnNode ab : method.instructions.toArray())
-		{
-			if(Opcodes.NEW == ab.getOpcode())
-			{
-				TypeInsnNode type = (TypeInsnNode)ab;
-				if(type.desc.equals(desc_exception))
-				{
-					start = ab;
-					end = ASMHelper.nextInsn(start, Opcodes.ATHROW);
-					break;
-				}
-			}
-		}
-		if(start != null)
-			ASMHelper.removeInsn(method, start, end);
-	}
-	
-	/**
-	 * this will determine if the node is static or not
-	 */
-	public static boolean isStaticMethod(MethodInsnNode min) 
-	{
-		int opcode = min.getOpcode();
-		return Opcodes.INVOKESTATIC == opcode;
-	}
-	
-	/**
-	 *this will determine if the node is static or not
-	 */
-	public static boolean isStaticFeild(FieldInsnNode fin) 
-	{
-		int opcode = fin.getOpcode();
-		return Opcodes.GETSTATIC == opcode || Opcodes.PUTSTATIC == opcode;
-	}
-
-	public static boolean isReturnOpcode(int opcode)
-	{
-		return opcode == Opcodes.RETURN || opcode == Opcodes.ARETURN || opcode == Opcodes.DRETURN || opcode == Opcodes.FRETURN || opcode == Opcodes.IRETURN || opcode == Opcodes.LRETURN;
 	}
 }

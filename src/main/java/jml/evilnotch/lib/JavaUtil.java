@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.Array;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -211,6 +212,7 @@ public class JavaUtil {
 			return JavaUtil.castShort((Integer)obj);
 		return obj.shortValue();
 	}
+	
 	public static byte castByte(Number obj)
 	{
 		obj = getIntNum(obj);
@@ -223,29 +225,46 @@ public class JavaUtil {
 		return obj.byteValue();
 	}
 	
-	public static long castLong(Number obj){
+	public static long castLong(Number obj)
+	{
 		obj = getIntNum(obj);
 		return obj.longValue();
 	}
-	public static double castDouble(Number obj){
+	
+	public static double castDouble(Number obj)
+	{
 		return obj.doubleValue();
 	}
-	public static float castFloat(Number obj){
+	
+	public static float castFloat(Number obj)
+	{
 		return obj.floatValue();
 	}
+	
 	/**
 	 * if double/float convert to integer of long else do nothing
 	 */
-	public static Number getIntNum(Number obj) {
-		if(obj instanceof Double)
+	public static Number getIntNum(Number obj) 
+	{
+		if(isDouble(obj))
 		{
-			obj = new Long(JavaUtil.convertToLong((Double)obj));
+			obj = new Long(JavaUtil.convertToLong(obj.doubleValue() ));
 		}
-		else if(obj instanceof Float)
+		else if(isFloat(obj))
 		{
-			obj = new Long(JavaUtil.convertToLong((Float)obj));
+			obj = new Long(JavaUtil.convertToLong(obj.floatValue() ));
 		}
 		return obj;
+	}
+	
+	public static boolean isFloat(Number num)
+	{
+		return num instanceof Float || num instanceof FloatObj;
+	}
+	
+	public static boolean isDouble(Number num)
+	{
+		return num instanceof Double || num instanceof DoubleObj;
 	}
 	
 	/**
@@ -1485,6 +1504,21 @@ public class JavaUtil {
     			return null;//unkown data type
     	}
 		return clazz;
+	}
+	
+	public static <T> T[] concat(T[] a, T[] b)
+	{
+		T[] c = (T[]) Array.newInstance(a.getClass().getComponentType(), a.length + b.length);
+	    System.arraycopy(a, 0, c, 0, a.length);
+	    System.arraycopy(b, 0, c, a.length, b.length);
+		return c;
+	}
+
+	public static <T> T[] increase(T[] src, int increment)
+	{
+		T[] arr = (T[]) Array.newInstance(src.getClass().getComponentType(), src.length + increment);
+		System.arraycopy(src, 0, arr, 0, src.length);
+		return arr;
 	}
 	
 }

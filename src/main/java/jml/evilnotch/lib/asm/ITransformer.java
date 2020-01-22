@@ -12,7 +12,7 @@ public interface ITransformer {
 	/**
 	 * the transformer name essentially but, in resource location
 	 */
-	public ResourceLocation id();
+	public ResourceLocation getId();
 	/**
 	 * do not return a new list every time used a cached one
 	 * @return a list of classes in which your transformer will transform
@@ -21,7 +21,7 @@ public interface ITransformer {
 	/**
 	 * the transformer for your asm
 	 */
-	public void transform(String name, ClassNode node);
+	public void transform(String name, ClassNode node) throws Throwable;
 	
 	/**
 	 * if your transformer is dynamic just always return true
