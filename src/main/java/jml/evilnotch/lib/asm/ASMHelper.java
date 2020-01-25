@@ -19,6 +19,7 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.FieldNode;
+import org.objectweb.asm.tree.FrameNode;
 import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.JumpInsnNode;
@@ -238,12 +239,59 @@ public class ASMHelper
 		return null;
 	}
 	
+	/**
+	 * get a constructor since they are MethodNodes
+	 */
+	public static MethodNode getConstructor(ClassNode node, String desc) 
+	{
+		return getMethod(node, "<init>", desc);
+	}
+	
+	public static MethodNode getClassInit(ClassNode node) 
+	{
+		return getMethod(node, "<clinit>", "()V");
+	}
+	
 	public static FieldNode getField(ClassNode node, String name)
 	{
 		for(FieldNode f : node.fields)
 			if(f.name.equals(name))
 				return f;
 		return null;
+	}
+	
+	
+	/**
+	 * get a local variable index by it's owner name
+	 */
+	public static int getLocalVarIndex(MethodNode method, String owner, String name) 
+	{
+		for(LocalVariableNode local : method.localVariables)
+		{
+			if(local.desc.equals(owner) && local.name.equals(name))
+				return local.index;
+		}
+		return -1;
+	}
+	
+	public static int getLocalVarIndexByName(MethodNode method, String name) 
+	{
+		for(LocalVariableNode local : method.localVariables)
+		{
+			if(local.name.equals(name))
+				return local.index;
+		}
+		return -1;
+	}
+	
+	public static LocalVariableNode getLocalVar(MethodNode method, String owner, String name)
+	{
+		return method.localVariables.get(getLocalVarIndex(method, owner, name));
+	}
+	
+	public static LocalVariableNode getLocalVarByName(MethodNode method, String name)
+	{
+		return method.localVariables.get(getLocalVarIndexByName(method, name));
 	}
 	
 	/**
@@ -346,7 +394,7 @@ public class ASMHelper
 	/**
 	 * find the first instruction to inject
 	 */
-	public static AbstractInsnNode getFirstInsn(MethodNode method, int opcode) 
+	public static AbstractInsnNode firstInsn(MethodNode method, int opcode) 
 	{
 		for(AbstractInsnNode ab : method.instructions.toArray())
 		{
@@ -361,7 +409,7 @@ public class ASMHelper
 	/**
 	 * getting the first instanceof of this will usually tell you where the initial injection point should be after
 	 */
-	public static LineNumberNode getFirstInsn(MethodNode method) 
+	public static LineNumberNode firstInsn(MethodNode method) 
 	{
 		for(AbstractInsnNode obj : method.instructions.toArray())
 			if(obj instanceof LineNumberNode)
@@ -369,7 +417,7 @@ public class ASMHelper
 		return null;
 	}
 	
-	public static AbstractInsnNode getLastInsn(MethodNode method)
+	public static AbstractInsnNode lastInsn(MethodNode method)
 	{
 		AbstractInsnNode[] arr = method.instructions.toArray();
 		for(int i=arr.length;i>=0;i--)
@@ -384,40 +432,27 @@ public class ASMHelper
 	}
 	
 	/**
-	 * get a constructor since they are MethodNodes
-	 */
-	public static MethodNode getConstructor(ClassNode node, String desc) 
-	{
-		return getMethod(node, "<init>", desc);
-	}
-	
-	public static MethodNode getClassInit(ClassNode node) 
-	{
-		return getMethod(node, "<clinit>", "()V");
-	}
-	
-	/**
 	 * you can safely insert instructions in a constructor after the first super call
 	 * not this won't check if the fields are instantiated before calling your bytecode if you need to use
 	 * fields for your asm you will have to find a injection point further down the construction method
 	 */
 	public static AbstractInsnNode firstCtrInsn(MethodNode method)
 	{
-		return ASMHelper.getFirstInsn(method, Opcodes.INVOKESPECIAL);
+		return ASMHelper.firstInsn(method, Opcodes.INVOKESPECIAL);
 	}
 	
 	/**
 	 * helpful for finding injection point to the end of constructors
 	 */
-	public static AbstractInsnNode getLastPutField(MethodNode method) 
+	public static AbstractInsnNode lastPutField(MethodNode method) 
 	{
-		return getLastInsn(method, Opcodes.PUTFIELD);
+		return lastInsn(method, Opcodes.PUTFIELD);
 	}
 	
 	/**
 	 * optimized way of getting a last instruction
 	 */
-	public static AbstractInsnNode getLastInsn(MethodNode method, int opCode) 
+	public static AbstractInsnNode lastInsn(MethodNode method, int opCode) 
 	{
 		AbstractInsnNode[] arr = method.instructions.toArray();
 		for(int i=arr.length-1;i>=0;i--)
@@ -428,51 +463,8 @@ public class ASMHelper
 		}
 		return null;
 	}
-	
-	/**
-	 * get a local variable index by it's owner name
-	 */
-	public static int getLocalVarIndex(MethodNode method, String owner, String name) 
-	{
-		for(LocalVariableNode local : method.localVariables)
-		{
-			if(local.desc.equals(owner) && local.name.equals(name))
-				return local.index;
-		}
-		return -1;
-	}
-	
-	public static int getLocalVarIndexByName(MethodNode method, String name) 
-	{
-		for(LocalVariableNode local : method.localVariables)
-		{
-			if(local.name.equals(name))
-				return local.index;
-		}
-		return -1;
-	}
-	
-	public static LocalVariableNode getLocalVar(MethodNode method, String owner, String name)
-	{
-		return method.localVariables.get(getLocalVarIndex(method, owner, name));
-	}
-	
-	public static LocalVariableNode getLocalVarByName(MethodNode method, String name)
-	{
-		return method.localVariables.get(getLocalVarIndexByName(method, name));
-	}
-	
-	public static String toString(FieldNode field) 
-	{
-		return field.name + " desc:" + field.desc + " signature:" + field.signature + " access:" + field.access;
- 	}
-	
-	public static String toString(MethodNode method) 
-	{
-		return method.name + " desc:" + method.desc + " signature:" + method.signature + " access:" + method.access;
- 	}
 
-	public static MethodInsnNode getLastMethodInsn(MethodNode method, MethodInsnNode compare) 
+	public static MethodInsnNode lastMethodInsn(MethodNode method, MethodInsnNode compare) 
 	{
 		AbstractInsnNode[] list = method.instructions.toArray();
 		for(int i = list.length-1; i >=0 ; i--)
@@ -486,7 +478,7 @@ public class ASMHelper
 		return null;
 	}
 	
-	public static FieldInsnNode getLastFieldInsn(MethodNode method, FieldInsnNode compare) 
+	public static FieldInsnNode lastFieldInsn(MethodNode method, FieldInsnNode compare) 
 	{
 		AbstractInsnNode[] list = method.instructions.toArray();
 		for(int i = list.length-1; i >=0 ; i--)
@@ -500,41 +492,7 @@ public class ASMHelper
 		return null;
 	}
 	
-	public static boolean equals(MethodInsnNode m1, AbstractInsnNode ab)
-	{
-		if(!(ab instanceof MethodInsnNode))
-			return false;
-		MethodInsnNode m2 = (MethodInsnNode)ab;
-		return m1.getOpcode() == m2.getOpcode() && m1.name.equals(m2.name) && m1.desc.equals(m2.desc) && m1.owner.equals(m2.owner) && m1.itf == m2.itf;
-	}
-	
-	public static boolean equals(FieldInsnNode f1, AbstractInsnNode ab)
-	{
-		if(!(ab instanceof FieldInsnNode))
-			return false;
-		FieldInsnNode f2 = (FieldInsnNode)ab;
-		return f1.getOpcode() == f2.getOpcode() && f1.name.equals(f2.name) && f1.desc.equals(f2.desc) && f1.owner.equals(f2.owner);
-	}
-	
-	public static boolean equals(LdcInsnNode l1, AbstractInsnNode ab) 
-	{
-		if(!(ab instanceof LdcInsnNode))
-			return false;
-		LdcInsnNode l2 = (LdcInsnNode)ab;
-		return l1.cst.equals(l2.cst);
-	}
-	
-	public static boolean equals(FieldNode f1, FieldNode f2)
-	{
-		return f1.name.equals(f2.name) && f1.desc.equals(f2.desc);
-	}
-	
-	public static boolean equals(MethodNode m1, MethodNode m2)
-	{
-		return m1.name.equals(m2.name) && m1.desc.equals(m2.desc);
-	}
-	
-	public static FieldInsnNode getFirstFieldInsn(MethodNode method, FieldInsnNode field) 
+	public static FieldInsnNode firstFieldInsn(MethodNode method, FieldInsnNode field) 
 	{
 		for(AbstractInsnNode ab : method.instructions.toArray())
 		{
@@ -546,11 +504,11 @@ public class ASMHelper
 		return null;
 	}
 	
-	public static MethodInsnNode getFirstMethodInsn(MethodNode method, MethodInsnNode field) 
+	public static MethodInsnNode firstMethodInsn(MethodNode method, MethodInsnNode insn) 
 	{
 		for(AbstractInsnNode ab : method.instructions.toArray())
 		{
-			if(ASMHelper.equals(field, ab))
+			if(ASMHelper.equals(insn, ab))
 			{
 				return (MethodInsnNode) ab;
 			}
@@ -558,7 +516,7 @@ public class ASMHelper
 		return null;
 	}
 	
-	public static LdcInsnNode getFirstLdcInsn(MethodNode method, LdcInsnNode ldc) 
+	public static LdcInsnNode firstLdcInsn(MethodNode method, LdcInsnNode ldc) 
 	{
 		for(AbstractInsnNode ab : method.instructions.toArray())
 		{
@@ -570,24 +528,7 @@ public class ASMHelper
 		return null;
 	}
 
-	/**
-	 * get the standard recommended input stream for asm
-	 */
-	public static String getInputStream(String modid, String simpleName) 
-	{
-		return "assets/" + modid + "/asm/" + (ObfHelper.isObf ? "srg/" : "deob/") + simpleName;
-	}
-	
-	/**
-	 * get a classes simple name without loading it
-	 */
-	public static String getSimpleName(String clazz)
-	{
-		String[] args = clazz.split("\\.");
-		return args[args.length-1];
-	}
-
-	public static JumpInsnNode getNextJumpInsn(AbstractInsnNode starting) 
+	public static JumpInsnNode nextJumpInsn(AbstractInsnNode starting) 
 	{
 		AbstractInsnNode k = starting;
 		while(k != null)
@@ -599,7 +540,7 @@ public class ASMHelper
 		return null;
 	}
 	
-	public static FieldInsnNode getNextFieldInsn(AbstractInsnNode starting) 
+	public static FieldInsnNode nextFieldInsn(AbstractInsnNode starting) 
 	{
 		AbstractInsnNode k = starting;
 		while(k != null)
@@ -611,7 +552,7 @@ public class ASMHelper
 		return null;
 	}
 	
-	public static FieldInsnNode getNextFieldInsn(AbstractInsnNode starting, FieldInsnNode compare) 
+	public static FieldInsnNode nextFieldInsn(AbstractInsnNode starting, FieldInsnNode compare) 
 	{
 		AbstractInsnNode k = starting;
 		while(k != null)
@@ -623,19 +564,19 @@ public class ASMHelper
 		return null;
 	}
 	
-	public static MethodInsnNode getNextMethodInsn(AbstractInsnNode starting, MethodInsnNode compare) 
+	public static MethodInsnNode nextMethodInsn(AbstractInsnNode starting, MethodInsnNode insn) 
 	{
 		AbstractInsnNode k = starting;
 		while(k != null)
 		{
 			k = k.getNext();
-			if(k instanceof MethodInsnNode && equals(compare, k))
+			if(k instanceof MethodInsnNode && equals(insn, k))
 				return (MethodInsnNode) k;
 		}
 		return null;
 	}
 	
-	public static MethodInsnNode getNextMethodInsn(AbstractInsnNode starting) 
+	public static MethodInsnNode nextMethodInsn(AbstractInsnNode starting) 
 	{
 		AbstractInsnNode k = starting;
 		while(k != null)
@@ -647,7 +588,7 @@ public class ASMHelper
 		return null;
 	}
 
-	public static IntInsnNode getNextIntInsn(AbstractInsnNode ab) 
+	public static IntInsnNode nextIntInsn(AbstractInsnNode ab) 
 	{
 		while(ab != null)
 		{
@@ -658,12 +599,45 @@ public class ASMHelper
 		return null;
 	}
 
-	public static AbstractInsnNode getNextInsn(AbstractInsnNode ab, int opcode) 
+	public static AbstractInsnNode nextInsn(AbstractInsnNode ab, int opcode) 
 	{
 		while(ab != null)
 		{
 			ab = ab.getNext();
 			if(ab != null && ab.getOpcode() == opcode)
+				return ab;
+		}
+		return null;
+	}
+	
+	public static AbstractInsnNode nextLineNumber(AbstractInsnNode ab) 
+	{
+		while(ab != null)
+		{
+			ab = ab.getNext();
+			if(ab instanceof LineNumberNode)
+				return ab;
+		}
+		return null;
+	}
+	
+	public static AbstractInsnNode getNextLabel(AbstractInsnNode ab) 
+	{
+		while(ab != null)
+		{
+			ab = ab.getNext();
+			if(ab instanceof LabelNode)
+				return ab;
+		}
+		return null;
+	}
+	
+	public static AbstractInsnNode previousLineNumber(AbstractInsnNode ab) 
+	{
+		while(ab != null)
+		{
+			ab = ab.getPrevious();
+			if(ab instanceof LabelNode)
 				return ab;
 		}
 		return null;
@@ -679,6 +653,21 @@ public class ASMHelper
 		if(value <= Short.MAX_VALUE)
 			return new IntInsnNode(Opcodes.SIPUSH, value);
 		return new LdcInsnNode(value);
+	}
+	
+	/**
+	 * delete a whole line instructions sectioned between two line number nodes
+	 * will not delete FrameNodes for binary compatibility for adding more lines later
+	 * ONLY SUPPORTS NORMAL LINES no for loops, if statements etc...
+	 */
+	public static void removeLine(MethodNode method, AbstractInsnNode start)
+	{
+		if(!(start instanceof LineNumberNode))
+			start = ASMHelper.previousLineNumber(start).getNext();
+		if(start instanceof FrameNode)
+			start = start.getNext();
+		AbstractInsnNode end = ASMHelper.getNextLabel(start).getPrevious();//previous is label and the one before the label is the end
+		ASMHelper.removeInsn(method, start, end);
 	}
 
 	/**
@@ -721,7 +710,7 @@ public class ASMHelper
 	 */
 	public static void clearMethod(MethodNode method) 
 	{
-		LineNumberNode line = ASMHelper.getFirstInsn(method);
+		LineNumberNode line = ASMHelper.firstInsn(method);
 		method.instructions.clear();
 		LabelNode label = new LabelNode();
 		method.instructions.add(label);
@@ -740,7 +729,7 @@ public class ASMHelper
 				if(type.desc.equals(desc_exception))
 				{
 					start = ab;
-					end = ASMHelper.getNextInsn(start, Opcodes.ATHROW);
+					end = ASMHelper.nextInsn(start, Opcodes.ATHROW);
 					break;
 				}
 			}
@@ -756,6 +745,67 @@ public class ASMHelper
 	public static void setOpcode(AbstractInsnNode ab, int opcode)
 	{
 		ReflectionHandler.set(opField, ab, opcode);
+	}
+	
+	public static boolean equals(MethodInsnNode m1, AbstractInsnNode ab)
+	{
+		if(!(ab instanceof MethodInsnNode))
+			return false;
+		MethodInsnNode m2 = (MethodInsnNode)ab;
+		return m1.getOpcode() == m2.getOpcode() && m1.name.equals(m2.name) && m1.desc.equals(m2.desc) && m1.owner.equals(m2.owner) && m1.itf == m2.itf;
+	}
+	
+	public static boolean equals(FieldInsnNode f1, AbstractInsnNode ab)
+	{
+		if(!(ab instanceof FieldInsnNode))
+			return false;
+		FieldInsnNode f2 = (FieldInsnNode)ab;
+		return f1.getOpcode() == f2.getOpcode() && f1.name.equals(f2.name) && f1.desc.equals(f2.desc) && f1.owner.equals(f2.owner);
+	}
+	
+	public static boolean equals(LdcInsnNode l1, AbstractInsnNode ab) 
+	{
+		if(!(ab instanceof LdcInsnNode))
+			return false;
+		LdcInsnNode l2 = (LdcInsnNode)ab;
+		return l1.cst.equals(l2.cst);
+	}
+	
+	public static boolean equals(FieldNode f1, FieldNode f2)
+	{
+		return f1.name.equals(f2.name) && f1.desc.equals(f2.desc);
+	}
+	
+	public static boolean equals(MethodNode m1, MethodNode m2)
+	{
+		return m1.name.equals(m2.name) && m1.desc.equals(m2.desc);
+	}
+	
+	public static String toString(FieldNode field) 
+	{
+		return field.name + " desc:" + field.desc + " signature:" + field.signature + " access:" + field.access;
+ 	}
+	
+	public static String toString(MethodNode method) 
+	{
+		return method.name + " desc:" + method.desc + " signature:" + method.signature + " access:" + method.access;
+ 	}
+	
+	/**
+	 * get the standard recommended input stream for asm
+	 */
+	public static String getInputStream(String modid, String simpleName) 
+	{
+		return "assets/" + modid + "/asm/" + (ObfHelper.isObf ? "srg/" : "deob/") + simpleName;
+	}
+	
+	/**
+	 * get a classes simple name without loading it
+	 */
+	public static String getSimpleName(String clazz)
+	{
+		String[] args = clazz.split("\\.");
+		return args[args.length-1];
 	}
 	
 	/**
@@ -870,8 +920,8 @@ public class ASMHelper
 	    }
 	    if(c.isArray()) 
 	    {
-	    	return c.getName().replace('.', '/');
+	    	return ASMHelper.toASMClass(c.getName()) + ";";
 	    }
-	    return ('L' + c.getName() + ';').replace('.', '/');
+	    return ASMHelper.toASMDesc(c.getName());
 	}
 }
