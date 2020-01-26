@@ -490,19 +490,19 @@ public class JSONArray extends ArrayList<Object>{
 	/**
 	 * get a date
 	 */
-	public Date getDate(int index, DateFormat format) throws ParseException 
+	public Date getDate(int key, DateFormat format) throws ParseException 
 	{
-		return format.parse(this.getString(index));
+		return format.parse(this.getString(key));
 	}
 	
-	public void setDate(int index, Date date, DateFormat format)
+	public void setDate(int key, Date date, DateFormat format)
 	{
-		this.set(index, format.format(date));
+		this.set(key, format.format(key));
 	}
 	
-	public void addDate(int index, Date date, DateFormat format)
+	public void addDate(int key, Date date, DateFormat format)
 	{
-		this.add(index, format.format(date));
+		this.add(key, format.format(date));
 	}
 	
 	public boolean addDate(Date date, DateFormat format)

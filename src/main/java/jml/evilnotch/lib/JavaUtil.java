@@ -966,7 +966,7 @@ public class JavaUtil {
 			}
 			else
 			{
-				reader = new BufferedReader(new InputStreamReader(new FileInputStream(f),StandardCharsets.UTF_8) );
+				reader = new BufferedReader(new InputStreamReader(new FileInputStream(f), StandardCharsets.UTF_8) );
 			}
 			
 			list = new ArrayList();
