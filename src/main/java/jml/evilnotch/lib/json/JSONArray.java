@@ -12,7 +12,12 @@ import java.util.Date;
 
 import jml.evilnotch.lib.JavaUtil;
 import jml.evilnotch.lib.json.internal.Util;
+import jml.evilnotch.lib.json.serialize.JSONParseException;
+import jml.evilnotch.lib.json.serialize.JSONParser;
 
+/**
+ * Main JSONArray object
+ */
 public class JSONArray extends ArrayList<Object>{
 	
 	public JSONArray()
@@ -27,7 +32,7 @@ public class JSONArray extends ArrayList<Object>{
 
 	public JSONArray(Collection collection)
 	{
-		super((Collection)JSONUtil.getValidJsonValue(collection));
+		super((Collection)JSONUtil.toJSONValue(collection));
 	}
 	
 	public <T> JSONArray(T[] array) 
@@ -101,7 +106,7 @@ public class JSONArray extends ArrayList<Object>{
 		}
 	}
 	
-	public JSONArray(String json) throws JSONParseException 
+	public JSONArray(String json) 
 	{
 		super(new JSONParser().parseJSONArray(json));
 	}
@@ -114,28 +119,28 @@ public class JSONArray extends ArrayList<Object>{
 	@Override
 	public boolean add(Object obj)
 	{
-		obj = JSONUtil.getValidJsonValue(obj);
+		obj = JSONUtil.toJSONValue(obj);
 		return super.add(obj);
 	}
 	
 	@Override
 	public void add(int index, Object obj)
 	{
-		obj = JSONUtil.getValidJsonValue(obj);
+		obj = JSONUtil.toJSONValue(obj);
 		super.add(index, obj);
 	}
 	
 	@Override
 	public boolean addAll(Collection map)
 	{
-		map = (Collection) JSONUtil.getValidJsonValue(map);
+		map = (Collection) JSONUtil.toJSONValue(map);
 		return super.addAll(map);
 	}
 	
 	@Override
 	public boolean addAll(int index, Collection map)
 	{
-		map = (Collection) JSONUtil.getValidJsonValue(map);
+		map = (Collection) JSONUtil.toJSONValue(map);
 		return super.addAll(index, map);
 	}
 	

@@ -6,32 +6,12 @@ import java.util.Map;
 import jml.evilnotch.lib.JavaUtil;
 import jml.evilnotch.lib.json.internal.Util;
 
-
 public final class JSONUtil {
-	
-	/**
-	 * Escape quotes, \, /, \r, \n, \b, \f, \t and other control characters (U+0000 through U+001F).
-	 * @param string the {@linkplain String} you want to escape
-	 * @return the escaped {@linkplain String}
-	 * @since 1.0.0
-	 */
-	@Deprecated
-	public static final String escape(String string) {
-		
-		if(string != null) {
-			
-			StringBuilder builder = new StringBuilder();
-	        Util.escape(string, builder);
-	        return builder.toString();
-		}
-
-		return null;
-    }
 	
 	/**
 	 * fixes any objects before inserting them into a json. Doesn't support static or dynamic arrays
 	 */
-	public static Object getValidJsonValue(Object value) 
+	public static Object toJSONValue(Object value) 
 	{
 		if(JavaUtil.isStaticArray(value))
 			throw new IllegalArgumentException("Use JSONArray Objects for non primitive values");

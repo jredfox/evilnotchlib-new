@@ -13,9 +13,11 @@ import java.util.Map;
 
 import jml.evilnotch.lib.JavaUtil;
 import jml.evilnotch.lib.json.internal.Util;
+import jml.evilnotch.lib.json.serialize.JSONParseException;
+import jml.evilnotch.lib.json.serialize.JSONParser;
 
 /**
- * this is a json map that allows only primitive and other json values into the map
+ * Main JSONObject
  * @author jredfox
  */
 public class JSONObject extends LinkedHashMap<String, Object>{
@@ -32,27 +34,32 @@ public class JSONObject extends LinkedHashMap<String, Object>{
 
 	public JSONObject(Map map) 
 	{
-		super((Map)JSONUtil.getValidJsonValue(map));
+		super((Map)JSONUtil.toJSONValue(map));
+	}
+	
+	public JSONObject(String json)
+	{
+		super(new JSONParser().parseJSONObject(json));
 	}
 
 	@Override
 	public Object put(String key, Object value)
 	{
-		value = JSONUtil.getValidJsonValue(value);
+		value = JSONUtil.toJSONValue(value);
 		return super.put(key, value);
 	}
 
 	@Override
 	public Object putIfAbsent(String key, Object value)
 	{
-		value = JSONUtil.getValidJsonValue(value);
+		value = JSONUtil.toJSONValue(value);
 		return super.putIfAbsent(key, value);
 	}
 	
 	@Override
 	public void putAll(Map map)
 	{
-		map = (Map) JSONUtil.getValidJsonValue(map);
+		map = (Map) JSONUtil.toJSONValue(map);
 		super.putAll(map);
 	}
 	

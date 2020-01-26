@@ -1,4 +1,4 @@
-package jml.evilnotch.lib.json;
+package jml.evilnotch.lib.json.serialize;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
+import jml.evilnotch.lib.json.JSONArray;
+import jml.evilnotch.lib.json.JSONObject;
 import jml.evilnotch.lib.json.internal.Yylex;
 import jml.evilnotch.lib.json.internal.Yytoken;
 
@@ -228,16 +230,34 @@ public class JSONParser {
 		return this.lexer.getPosition();
 	}
 	
-	public JSONObject parseJSONObject(String s) throws JSONParseException{
-		return (JSONObject) this.parse(s);
+	public JSONObject parseJSONObject(String s) 
+	{
+		try 
+		{
+			return (JSONObject) this.parse(s);
+		} 
+		catch (JSONParseException e)
+		{
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
 	public JSONObject parseJSONObject(Reader in) throws IOException, JSONParseException{
 		return (JSONObject) this.parse(in);
 	}
 	
-	public JSONArray parseJSONArray(String s) throws JSONParseException{
-		return (JSONArray) this.parse(s);
+	public JSONArray parseJSONArray(String s)
+	{
+		try 
+		{
+			return (JSONArray) this.parse(s);
+		} 
+		catch (JSONParseException e) 
+		{
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
 	public JSONArray parseJSONArray(Reader in) throws IOException, JSONParseException{
