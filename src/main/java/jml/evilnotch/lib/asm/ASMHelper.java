@@ -669,6 +669,15 @@ public class ASMHelper
 		AbstractInsnNode end = ASMHelper.getNextLabel(start).getPrevious();//previous is label and the one before the label is the end
 		ASMHelper.removeInsn(method, start, end);
 	}
+	
+	/**
+	 * null checks
+	 */
+	public static void removeInsn(MethodNode method, AbstractInsnNode start) 
+	{
+		if(start != null)
+			method.instructions.remove(start);
+	}
 
 	/**
 	 * make sure the start and end are fetched directly from the method node
@@ -894,7 +903,7 @@ public class ASMHelper
 	    return s + getTypeForClass(m.getReturnType());
 	}
 	
-	public static String getTypeForClass(final Class c)
+	public static String getTypeForClass(Class c)
 	{
 	    if(c.isPrimitive())
 	    {
@@ -918,7 +927,7 @@ public class ASMHelper
 	            return "V";
 	        throw new RuntimeException("Unrecognized primitive " + c);
 	    }
-	    if(c.isArray()) 
+	    else if(c.isArray()) 
 	    {
 	    	return ASMHelper.toASMClass(c.getName()) + ";";
 	    }
