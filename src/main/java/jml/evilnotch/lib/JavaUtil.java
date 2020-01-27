@@ -44,12 +44,10 @@ import org.apache.commons.io.IOUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.JsonElement;
 
 import jml.evilnotch.lib.json.JSONObject;
-import jml.evilnotch.lib.json.serialize.JSONParseException;
-import jml.evilnotch.lib.json.serialize.JSONParser;
+import jml.evilnotch.lib.json.serialize.JSONSerializer;
 import jml.evilnotch.lib.primitive.ByteObj;
 import jml.evilnotch.lib.primitive.DoubleObj;
 import jml.evilnotch.lib.primitive.FloatObj;
@@ -1084,19 +1082,12 @@ public class JavaUtil {
 		}
 		return false;
 	}
+	
 	public static JSONObject toJsonFrom64(String base64) 
 	{
 		byte[] out = org.apache.commons.codec.binary.Base64.decodeBase64(base64.getBytes());
 		String str = new String(out,StandardCharsets.UTF_8);
-		JSONParser parser = new JSONParser();
-		try 
-		{
-			return (JSONObject)parser.parse(str);
-		} 
-		catch (JSONParseException e) 
-		{
-			e.printStackTrace();
-		}
+//		return new JSONObject(str);
 		return null;
 	}
 
@@ -1148,17 +1139,24 @@ public class JavaUtil {
 
 	public static void saveJSON(JSONObject json, File file, boolean utf8) 
 	{
-		ArrayList<String> arr = JavaUtil.asArray((Object[])new String[]{toPrettyFormat(json.toString())}) ;
-		JavaUtil.saveFileLines(arr, file, utf8);
+		try {
+			BufferedWriter writer = JavaUtil.getFileWriter(file);
+			JSONSerializer parser = new JSONSerializer();
+			parser.setPrettyPrint(true);
+			parser.write(json, writer);
+			writer.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
     /**
 	 * Convert a JSON string to freindly printed version
 	*/
-	public static String toPrettyFormat(String jsonString) 
+	public static String toPrettyFormat(JsonElement json) 
 	{
-		JsonParser parser = new JsonParser();
-		JsonObject json = parser.parse(jsonString).getAsJsonObject();
 		Gson gson = new GsonBuilder().serializeNulls().disableHtmlEscaping().setPrettyPrinting().create();
 		String prettyJson = gson.toJson(json);
 	    return prettyJson.replaceAll("\n", "\r\n");
@@ -1180,17 +1178,6 @@ public class JavaUtil {
 	public static void populateStatic(Object[] locs, List names) {
 		for(int i=0;i<names.size();i++)
 			locs[i] = names.get(i);
-	}
-
-	public static JSONObject getJsonFromString(String string) 
-	{
-		JSONParser p = new JSONParser();
-		try {
-			return (JSONObject) p.parse(string);
-		} catch (JSONParseException e) {
-			e.printStackTrace();
-			return null;
-		}
 	}
 	
 	public static boolean isClassExtending(Class<? extends Object> base, Class<? extends Object> toCompare) 
@@ -1413,20 +1400,6 @@ public class JavaUtil {
 		for(int i=0;i<li.size();i++)
 			list[i] = li.get(i);
 		return list;
-	}
-	
-	public static final JSONParser jsonParser = new JSONParser();
-	public static JSONObject getJson(File armor) 
-	{
-		try 
-		{
-			return (JSONObject) jsonParser.parse(new FileReader(armor));
-		} 
-		catch (Exception e) 
-		{
-			e.printStackTrace();
-		}
-		return null;
 	}
 	
 	public static int[] getStaticArrayInts(String str) 
