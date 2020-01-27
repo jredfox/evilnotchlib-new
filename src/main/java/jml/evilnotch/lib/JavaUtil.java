@@ -944,29 +944,32 @@ public class JavaUtil {
 			list.add((T) staticArr[i]);
 		return list;
 	}
-	public static boolean isStringNullOrEmpty(String string) {
+	
+	public static boolean isStringNullOrEmpty(String string) 
+	{
 		if(string == null || string.isEmpty())
 			return true;
 		return false;
 	}
+	
 	/**
 	 * Equivalent to Files.readAllLines() but, works way faster
 	 */
-	public static List<String> getFileLines(File f, boolean utf8)
+	public static List<String> getFileLines(File f)
 	{
-		BufferedReader reader = null;
+		return getFileLines(getReader(f));
+	}
+	
+	public static List<String> getFileLines(String input) 
+	{
+		return getFileLines(getReader(input));
+	}
+	
+	public static List<String> getFileLines(BufferedReader reader) 
+	{
 		List<String> list = null;
 		try
 		{
-			if(!utf8)
-			{
-				reader = new BufferedReader(new FileReader(f));//says it's utf-8 but, the jvm actually specifies it even though the lang settings in a game might be different
-			}
-			else
-			{
-				reader = new BufferedReader(new InputStreamReader(new FileInputStream(f), StandardCharsets.UTF_8) );
-			}
-			
 			list = new ArrayList();
 			String s = reader.readLine();
 			
@@ -1001,39 +1004,45 @@ public class JavaUtil {
 				}
 			}
 		}
-		
 		return list;
 	}
 	
 	/**
-	 * even though it's utf8 writing it's the fastes one I tried 5 diferent other options from different objects
+	 * even though it's utf8 writing it's the fastes one I tried 5 different other options from different objects
 	 */
-	public static BufferedWriter getFileWriter(File f) throws FileNotFoundException, IOException
+	public static BufferedWriter getWriter(File f) throws FileNotFoundException, IOException
 	{
 		return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f), StandardCharsets.UTF_8));
+	}
+	
+	public static BufferedReader getReader(File f)
+	{
+		 try
+		 {
+			 return new BufferedReader(new InputStreamReader(new FileInputStream(f), StandardCharsets.UTF_8));
+		 }
+		 catch(Throwable t)
+		 {
+			 return null;
+		 }
+	}
+	
+	public static BufferedReader getReader(String input)
+	{
+		return new BufferedReader(new InputStreamReader(JavaUtil.class.getClassLoader().getResourceAsStream(input)));
 	}
 	
 	/**
 	 * Overwrites entire file default behavior no per line modification removal/addition
 	 */
-	public static void saveFileLines(List<String> list,File f,boolean utf8)
+	public static void saveFileLines(List<String> list, File f)
 	{
 		BufferedWriter writer = null;
 		try
 		{
-			if(!utf8)
-			{
-				writer = new BufferedWriter(new FileWriter(f));
-			}
-			else
-			{
-				writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f),StandardCharsets.UTF_8 ) );
-			}
-			
+			writer = JavaUtil.getWriter(f);
 			for(String s : list)
-			{
 				writer.write(s + "\r\n");
-			}
 		}
 		catch(Exception e)
 		{
@@ -1054,6 +1063,7 @@ public class JavaUtil {
 			}
 		}
 	}
+	
 	public static boolean isStringBoolean(String s) {
 		s = s.toLowerCase();
 		return s.equals("true") || s.equals("false");
@@ -1106,7 +1116,7 @@ public class JavaUtil {
 		try
 		{
 			JSONSerializer parser = new JSONSerializer();
-			return parser.readJSONObject(new BufferedReader(new FileReader(file)));
+			return parser.readJSONObject(JavaUtil.getReader(file));
 		}
 		catch(Exception e)
 		{
@@ -1147,7 +1157,7 @@ public class JavaUtil {
 	{
 		try 
 		{
-			BufferedWriter writer = JavaUtil.getFileWriter(file);
+			BufferedWriter writer = JavaUtil.getWriter(file);
 			JSONSerializer parser = new JSONSerializer();
 			parser.setPrettyPrint(true);
 			parser.write(json, writer);
@@ -1184,50 +1194,6 @@ public class JavaUtil {
 	public static boolean isClassExtending(Class<? extends Object> base, Class<? extends Object> toCompare) 
 	{
 		return ReflectionHandler.instanceOf(base, toCompare);
-	}
-	
-	public static List<String> getFileLines(String inputStream) 
-	{
-		BufferedReader reader = null;
-		List<String> list = null;
-		try
-		{
-			reader = new BufferedReader(new InputStreamReader(JavaUtil.class.getClassLoader().getResourceAsStream(inputStream),StandardCharsets.UTF_8));
-			list = new ArrayList<String>();
-			String s = reader.readLine();
-			
-			if(s != null)
-			{
-				list.add(s);
-			}
-			
-			while(s != null)
-			{
-				s = reader.readLine();
-				if(s != null)
-				{
-					list.add(s);
-				}
-			}
-		}
-		catch(Exception e)
-		{
-			e.printStackTrace();
-		}
-		finally
-		{
-			if(reader != null)
-			{
-				try 
-				{
-					reader.close();
-				} catch (IOException e) 
-				{
-					System.out.println("Unable to Close InputStream this is bad");
-				}	
-			}
-		}
-		return list;
 	}
 	
 	/**

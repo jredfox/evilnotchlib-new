@@ -1,8 +1,15 @@
 package purejava.main;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import jml.evilnotch.lib.JavaUtil;
@@ -13,23 +20,15 @@ import jml.evilnotch.lib.simple.SimpleConfig;
 
 public class MainJava {
 	
-	public static void main(String[] args)
+	public static void main(String[] args) throws FileNotFoundException, IOException
 	{
-		JSONObject json = new JSONObject();
-		JSONObject car = new JSONObject();
-		JSONSerializer s = new JSONSerializer();
-		json = new JSONObject(json.toString());
-		
-		json.put("car", car);
-		car.put("a", true);
-		car.put("null", null);
-		car.put("year", 22);
-		json.put("cfg", 100);
-//		JavaUtil.getJSON(new File(".","eclipse/test.json"));
-		long time = System.currentTimeMillis();
-		JSONObject js = JavaUtil.getJSON(new File(".","eclipse/test.json"));
-		JavaUtil.printTime(time, "Done Saving json:");
-		System.out.println(js.prettyPrint());
+		int large = Short.MAX_VALUE*10000;
+		char[] chars = new char[large];
+		Arrays.fill(chars, 'Z');
+		String text = new String(chars);
+		BufferedWriter writer = JavaUtil.getWriter(new File("test.txt"));
+		writer.write(text);
+		writer.close();
 	}
 
 }
