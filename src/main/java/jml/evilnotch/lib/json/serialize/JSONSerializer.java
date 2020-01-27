@@ -26,7 +26,7 @@ public class JSONSerializer {
 	public static final Gson pGson = new GsonBuilder().serializeNulls().disableHtmlEscaping().setPrettyPrinting().create();
 	public static final Gson normalGson = new GsonBuilder().serializeNulls().disableHtmlEscaping().create();
 	
-	public boolean prettyPrint;
+	public boolean isPretty;
 	public JSONSerializer()
 	{
 		
@@ -34,7 +34,7 @@ public class JSONSerializer {
 	
 	public void setPrettyPrint(boolean enabled)
 	{
-		this.prettyPrint = enabled;
+		this.isPretty = enabled;
 	}
 	
 	public JSONArray readJSONArray(String str)
@@ -113,7 +113,7 @@ public class JSONSerializer {
 	
 	public Gson getGson()
 	{
-		return this.prettyPrint ? pGson : normalGson;
+		return this.isPretty ? pGson : normalGson;
 	}
 
 }
