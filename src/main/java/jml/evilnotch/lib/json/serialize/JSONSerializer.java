@@ -59,17 +59,32 @@ public class JSONSerializer {
 	
 	public IGsonable read(Reader reader)
 	{
-		JsonParser parser = new JsonParser();
-    	JsonElement element = parser.parse(new JsonReader(reader));
-    	IGsonable json = element instanceof JsonObject ? new JSONObject() : new JSONArray();
-    	json.fromGson(element);
-		return json;
+		try
+		{
+			JsonParser parser = new JsonParser();
+			JsonElement element = parser.parse(new JsonReader(reader));
+			IGsonable json = element instanceof JsonObject ? new JSONObject() : new JSONArray();
+			json.fromGson(element);
+			return json;
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
 	public void write(IGsonable json, Writer writer) throws IOException
 	{
-		Gson gson = this.getGson();
-		gson.toJson(json.toGson(), newJsonWriter(gson, writer));
+		try
+		{
+			Gson gson = this.getGson();
+			gson.toJson(json.toGson(), newJsonWriter(gson, writer));
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 	
 	private static Method newJson = ReflectionHandler.getMethod(Gson.class, "newJsonWriter", Writer.class);
@@ -78,7 +93,7 @@ public class JSONSerializer {
 		return (JsonWriter) ReflectionHandler.invoke(newJson, gson, writer);
 	}
 	
-	public String toJsonString(IGsonable json) 
+	public String toJSONString(IGsonable json) 
 	{
 		Gson gson = normalGson;
 		String text = gson.toJson(json.toGson());

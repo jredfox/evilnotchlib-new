@@ -238,6 +238,11 @@ public class JSONObject extends LinkedHashMap<String, Object> implements IGsonab
 	@Override
 	public String toString() 
 	{
+		return new JSONSerializer().toJSONString(this);
+	}
+	
+	public String prettyPrint()
+	{
 		return new JSONSerializer().toPrettyPrint(this);
 	}
 	

@@ -17,22 +17,19 @@ public class MainJava {
 	{
 		JSONObject json = new JSONObject();
 		JSONObject car = new JSONObject();
+		JSONSerializer s = new JSONSerializer();
+		json = new JSONObject(json.toString());
+		
 		json.put("car", car);
 		car.put("a", true);
 		car.put("null", null);
 		car.put("year", 22);
 		json.put("cfg", 100);
-		System.out.println(new JSONSerializer().readJSONObject(json.toString()));
-		try
-		{
-			long time = System.currentTimeMillis();
-			JavaUtil.printTime(time, "Done Saving json:");
-			JavaUtil.saveJSONSafley(json, new File(".","eclipse/test.json"));
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-		}
+//		JavaUtil.getJSON(new File(".","eclipse/test.json"));
+		long time = System.currentTimeMillis();
+		JSONObject js = JavaUtil.getJSON(new File(".","eclipse/test.json"));
+		JavaUtil.printTime(time, "Done Saving json:");
+		System.out.println(js.prettyPrint());
 	}
 
 }

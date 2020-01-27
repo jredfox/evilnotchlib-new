@@ -1086,9 +1086,8 @@ public class JavaUtil {
 	public static JSONObject toJsonFrom64(String base64) 
 	{
 		byte[] out = org.apache.commons.codec.binary.Base64.decodeBase64(base64.getBytes());
-		String str = new String(out,StandardCharsets.UTF_8);
-//		return new JSONObject(str);
-		return null;
+		String str = new String(out, StandardCharsets.UTF_8);
+		return new JSONObject(str);
 	}
 
 	public static long getDays(long ms) 
@@ -1099,37 +1098,44 @@ public class JavaUtil {
 	public static long getTime(long time) {
 		return System.currentTimeMillis()-time;
 	}
+	
+	public static JSONObject getJSON(File file)
+	{
+		if(!file.exists())
+			return null;
+		try
+		{
+			JSONSerializer parser = new JSONSerializer();
+			return parser.readJSONObject(new BufferedReader(new FileReader(file)));
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
 
 	public static void saveJSONSafley(JSONObject json, File file) throws IOException 
 	{
-		saveJSONSafley(json, file, true);
-	}
-	
-	public static void saveJSONSafley(JSONObject json, File file, boolean utf8) throws IOException 
-	{
 		createFileSafley(file);
-		saveJSON(json, file, utf8);
-	}
-	
-	public static boolean saveIfJSON(JSONObject json, File file) throws IOException 
-	{
-		return saveIfJSON(json, file, true);
+		saveJSON(json, file);
 	}
 	
 	/**
 	 * @return if the file saved or not
 	 */
-	public static boolean saveIfJSON(JSONObject json, File file, boolean utf8) throws IOException 
+	public static boolean saveIfJSON(JSONObject json, File file) throws IOException 
 	{
 		if(!file.exists())
 		{
-			saveJSONSafley(json, file, utf8);
+			saveJSONSafley(json, file);
 			return true;
 		}
 		return false;
 	}
 
-	public static void createFileSafley(File file) throws IOException {
+	public static void createFileSafley(File file) throws IOException 
+	{
 		File parent = file.getParentFile();
 		if(!parent.exists())
 			parent.mkdirs();
@@ -1137,29 +1143,24 @@ public class JavaUtil {
 			file.createNewFile();
 	}
 
-	public static void saveJSON(JSONObject json, File file, boolean utf8) 
+	public static void saveJSON(JSONObject json, File file) 
 	{
-		try {
+		try 
+		{
 			BufferedWriter writer = JavaUtil.getFileWriter(file);
 			JSONSerializer parser = new JSONSerializer();
 			parser.setPrettyPrint(true);
 			parser.write(json, writer);
 			writer.close();
-		} catch (FileNotFoundException e) {
+		}
+		catch (FileNotFoundException e) 
+		{
 			e.printStackTrace();
-		} catch (IOException e) {
+		} 
+		catch (IOException e) 
+		{
 			e.printStackTrace();
 		}
-	}
-	
-    /**
-	 * Convert a JSON string to freindly printed version
-	*/
-	public static String toPrettyFormat(JsonElement json) 
-	{
-		Gson gson = new GsonBuilder().serializeNulls().disableHtmlEscaping().setPrettyPrinting().create();
-		String prettyJson = gson.toJson(json);
-	    return prettyJson.replaceAll("\n", "\r\n");
 	}
 
 	public static Object getFirst(Collection li) {
