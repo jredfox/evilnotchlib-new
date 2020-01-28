@@ -1249,7 +1249,7 @@ public class JavaUtil {
 	/**
 	 * an optimized way to split a string from it's first instanceof a char
 	 */
-	public static String[] splitFirst(String s,char reg)
+	public static String[] splitFirst(String s, char reg)
 	{
 		String[] parts = new String[2];
 		for(int i=0;i<s.length();i++)
@@ -1266,7 +1266,7 @@ public class JavaUtil {
 			return new String[]{s};
 		return parts;
 	}
-	public static String parseQuotes(String s, int index,String q) 
+	public static String parseQuotes(String s, int index, String q) 
 	{
 		if(index == -1)
 			return "";
