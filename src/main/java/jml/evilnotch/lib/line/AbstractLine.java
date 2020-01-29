@@ -10,10 +10,9 @@ public abstract class AbstractLine {
 	public List<Object> meta;
 	public List<Object> values;
 	
-	public AbstractLine(String str)
+	public AbstractLine()
 	{
-		str = str.trim();
-		this.parse(str);
+		
 	}
 	
 	public abstract String getDomainDefault();
