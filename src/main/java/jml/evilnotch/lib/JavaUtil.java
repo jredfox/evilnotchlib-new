@@ -1064,12 +1064,13 @@ public class JavaUtil {
 		}
 	}
 	
-	public static boolean isStringBoolean(String s) {
-		s = s.toLowerCase();
-		return s.equals("true") || s.equals("false");
+	public static boolean isBoolean(String s) 
+	{
+		return s.equalsIgnoreCase("true") || s.equalsIgnoreCase("false");
 	}
+	
 	public static boolean getBoolean(String str) {
-		if(!isStringBoolean(str))
+		if(!isBoolean(str))
 			return false;
 		return Boolean.parseBoolean(str);
 	}
@@ -1302,7 +1303,7 @@ public class JavaUtil {
 		}
 		return true;
 	}
-	public static boolean isStringNum(String s)
+	public static boolean isNumber(String s)
 	{
 		String valid = "1234567890.-";
 		String valid_endings = numberIds;//byte,short,long,float,double,int
@@ -1459,6 +1460,14 @@ public class JavaUtil {
 		T[] arr = (T[]) Array.newInstance(src.getClass().getComponentType(), src.length + increment);
 		System.arraycopy(src, 0, arr, 0, src.length);
 		return arr;
+	}
+	
+	/**
+	 * split with qutoe ignoring support
+	 */
+	public static String[] split(String valuesStr, char comma, char lquote, char rquote) 
+	{
+		return null;
 	}
 	
 }

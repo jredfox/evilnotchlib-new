@@ -32,15 +32,15 @@ public class Section {
 			int endIndex = indexOf(string, startIndex, section.end, section.lquote, section.rquote);
 			if(startIndex == -1 || endIndex == -1)
 				continue;
-			list[count++] = string.substring(startIndex, endIndex);
+			list[count++] = string.substring(startIndex, endIndex).trim();
 			index = endIndex;
 		}
 		return list;
 	}
 	
-	public static int indexOf(String string, int index, String find, char lq, char rq)
+	public static int indexOf(String string, int index, Character find, char lq, char rq)
 	{
-		if(find.isEmpty())
+		if(find == null)
 			return index;
 		else if(index == -1)
 			return -1;

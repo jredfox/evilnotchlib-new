@@ -8,6 +8,12 @@ import jml.evilnotch.lib.minecraft.util.NBTUtil;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 
+/**
+ * line library 3.0 has a more sophisticated parser system, easier to manipulate variables and extend upon.
+ * the string parsing is surrounded upon Section API which you can add more sections in your sub classes during construction
+ * Should be simply overall better and faster and more optimized. Most importantly you should be able to have Config Organizational Sections like forge's config allowing for less files to be parsed when using the line library.
+ * @author jredfox
+ */
 public class Line extends AbstractLine{
 
 	public char sep;
@@ -19,8 +25,10 @@ public class Line extends AbstractLine{
 	public char rquote;
 	public char equals;
 	public char comma;
-	public List<Section> sections = new ArrayList(4);
+	protected List<Section> sections = new ArrayList(4);
+//	public Comment comment;
 	public static final String[] types = {"B", "S", "I", "L", "F", "D", "Z"};
+	public static final String version = "3.0";
 	
 	/**
 	 * the default line parsing chars
@@ -52,9 +60,29 @@ public class Line extends AbstractLine{
 		this.sections.add(new Section(this.lmetaJson, this.rmetaJSon, this.lquote, this.rquote));
 		this.sections.add(new Section(this.equals, null, this.lquote, this.rquote));
 	}
+	
+	/**
+	 * every Line Object extending must NOT call super(String) but instead call, super() or super(chars...) 
+	 * as it will cause the object to parse before the subclass has a chance to construct
+	 */
+	public Line(String str)
+	{
+		this();
+		this.parse(str);
+	}
+	
+	/**
+	 * every Line Object extending must NOT call super(String) but instead call, super() or super(chars...) 
+	 * as it will cause the object to parse before the subclass has a chance to construct
+	 */
+	public Line(String str, char sep, char lmeta, char rmeta, char lmetaJson, char rmetaJson, char lquote, char rquote, char equals, char comma)
+	{
+		this(sep, lmeta, rmeta, lmetaJson, rmetaJson, lquote, rquote, equals, comma);
+		this.parse(str);
+	}
 
 	/**
-	 * called by the config after line construction for parsing
+	 * called after construction of the line object
 	 */
 	@Override
 	public void parse(String str)
@@ -70,6 +98,10 @@ public class Line extends AbstractLine{
 	{
 		if(idSection == null)
 			throw new RuntimeException("Section for line is null this should never happen!");
+		if(idSection.startsWith("" + this.lquote))
+		{
+			idSection = JavaUtil.parseQuotes(idSection, 0, this.lquote + "" + this.rquote);//filter out the quotes
+		}
 		if(idSection.contains("" + this.sep))
 		{
 			String[] idSplit = JavaUtil.splitFirst(idSection, this.sep);
@@ -97,7 +129,7 @@ public class Line extends AbstractLine{
 			return;
 		NBTTagCompound json = NBTUtil.getNBTTagCompound(jsonStr);
 		if(json == null)
-			throw new IllegalArgumentException("invalid parsing for json:" + jsonStr);
+			throw new IllegalArgumentException("invalid parsing for NBT:" + jsonStr);
 		this.meta.add(json);
 	}
 	
@@ -125,11 +157,11 @@ public class Line extends AbstractLine{
 			return Float.parseFloat(str.substring(0, str.length()-1));
 		else if(str.endsWith(types[5]))
 			return Double.parseDouble(str.substring(0, str.length()-1));
-		else if(str.endsWith(types[6]))
+		else if(JavaUtil.isBoolean(str))
 			return Boolean.parseBoolean(str.substring(0, str.length()-1));
 		else if(str.startsWith("" + this.lquote))
 			return JavaUtil.parseQuotes(str, 0, this.lquote + "" + this.rquote);
-		else if(JavaUtil.isStringNum(str))
+		else if(JavaUtil.isNumber(str))
 			return Long.parseLong(str);
 		return str.trim();//asserts that the value is now a string and will keep it trimed
 	}
@@ -137,7 +169,7 @@ public class Line extends AbstractLine{
 	@Override
 	public String getDomainDefault()
 	{
-		return "minecraft";
+		return "";
 	}
 	
 	public ResourceLocation getResourceLocation()
