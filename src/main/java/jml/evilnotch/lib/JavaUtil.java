@@ -59,9 +59,7 @@ import net.minecraft.util.ResourceLocation;
 
 public class JavaUtil {
 	public static final String SPECIALCHARS = "~!@#$%^&*()_+`'-=/,.<>?\"{}[]:;|" + "\\";
-	public static final String uniqueSplitter = "\u00A9" + "#" + "\u20AC";
-	public static final List emptyList = new ArrayList(0);
-	public static String numberIds = "bslfdi";
+	public static String numberIds = "bsilfd";
 	
 	/**
 	 * cast without loosing data and have a random negative number
@@ -74,16 +72,13 @@ public class JavaUtil {
 			return Integer.MIN_VALUE;
 		return (int)l;
 	}
+	
 	public static short castShort(long l)
 	{
 		if(l > Short.MAX_VALUE)
-		{
 			return Short.MAX_VALUE;
-		}
 		else if(l < Short.MIN_VALUE)
-		{
 			return Short.MIN_VALUE;
-		}
 		return (short)l;
 	}
 	public static byte castByte(long l)
@@ -98,13 +93,9 @@ public class JavaUtil {
 	public static short castShort(int i)
 	{
 		if(i > Short.MAX_VALUE)
-		{
 			return Short.MAX_VALUE;
-		}
 		else if(i < Short.MIN_VALUE)
-		{
 			return Short.MIN_VALUE;
-		}
 		return (short)i;
 	}
 	public static byte castByte(int i)
@@ -123,45 +114,53 @@ public class JavaUtil {
 			return Byte.MIN_VALUE;
 		return (byte)s;
 	}
+	
 	public static byte castByte(float f) 
 	{
-		long l = convertToLong(f);
+		long l = toLong(f);
 		return JavaUtil.castByte(l);
 	}
+	
 	public static byte castByte(double d) 
 	{
-		long l = convertToLong(d);
+		long l = toLong(d);
 		return JavaUtil.castByte(l);
 	}
 	
 	public static short castShort(float f) 
 	{
-		long l = convertToLong(f);
+		long l = toLong(f);
 		return JavaUtil.castShort(l);
 	}
+	
 	public static short castShort(double d) 
 	{
-		long l = convertToLong(d);
+		long l = toLong(d);
 		return JavaUtil.castShort(l);
 	}
+	
 	public static int castInt(float f) 
 	{
-		long l = convertToLong(f);
+		long l = toLong(f);
 		return JavaUtil.castInt(l);
 	}
+	
 	public static int castInt(double d) 
 	{
-		long l = convertToLong(d);
+		long l = toLong(d);
 		return JavaUtil.castInt(l);
 	}
+	
 	public static long castLong(float f)
 	{
-		return convertToLong(f);
+		return toLong(f);
 	}
+	
 	public static long castLong(double d)
 	{
-		return convertToLong(d);
+		return toLong(d);
 	}
+	
 	public static float castFloat(double d)
 	{
 		if(d > Float.MAX_VALUE)
@@ -174,36 +173,38 @@ public class JavaUtil {
 	/**
 	 * doesn't work every time as java algorithms truncate to 0 sometimes when negative only????
 	 */
-	public static long convertToLong(double d)
+	public static long toLong(double d)
 	{
 		if(d > Long.MAX_VALUE)
 			return Long.MAX_VALUE;
 		if(d < Long.MIN_VALUE)
 			return Long.MIN_VALUE;
-		return Math.round(d);
+		return (long) d;
 	}
+	
 	/**
 	 * doesn't work every time as java algorithms truncate to 0 sometimes when negative only????
 	 */
-	public static long convertToLong(float f)
+	public static long toLong(float f)
 	{
 		if(f > Long.MAX_VALUE)
 			return Long.MAX_VALUE;
 		if(f < Long.MIN_VALUE)
 			return Long.MIN_VALUE;
-		return (long)f;
+		return (long) f;
 	}
 	
 	public static int castInt(Number obj)
 	{
-		obj = getIntNum(obj);
+		obj = getInt(obj);
 		if(obj instanceof Long)
 			return JavaUtil.castInt(obj.longValue());
 		return obj.intValue();
 	}
+	
 	public static short castShort(Number obj)
 	{
-		obj = getIntNum(obj);
+		obj = getInt(obj);
 		if(obj instanceof Long)
 			return JavaUtil.castShort(obj.longValue());
 		else if(obj instanceof Integer)
@@ -213,7 +214,7 @@ public class JavaUtil {
 	
 	public static byte castByte(Number obj)
 	{
-		obj = getIntNum(obj);
+		obj = getInt(obj);
 		if(obj instanceof Long)
 			return JavaUtil.castByte(obj.longValue());
 		else if(obj instanceof Integer)
@@ -225,7 +226,7 @@ public class JavaUtil {
 	
 	public static long castLong(Number obj)
 	{
-		obj = getIntNum(obj);
+		obj = getInt(obj);
 		return obj.longValue();
 	}
 	
@@ -242,16 +243,12 @@ public class JavaUtil {
 	/**
 	 * if double/float convert to integer of long else do nothing
 	 */
-	public static Number getIntNum(Number obj) 
+	public static Number getInt(Number obj) 
 	{
 		if(isDouble(obj))
-		{
-			obj = new Long(JavaUtil.convertToLong(obj.doubleValue() ));
-		}
+			obj = new Long(JavaUtil.toLong(obj.doubleValue() ));
 		else if(isFloat(obj))
-		{
-			obj = new Long(JavaUtil.convertToLong(obj.floatValue() ));
-		}
+			obj = new Long(JavaUtil.toLong(obj.floatValue() ));
 		return obj;
 	}
 	
@@ -266,15 +263,16 @@ public class JavaUtil {
 	}
 	
 	/**
-	 * dynamically get your current public ip adress I recommend cacheing it somewhere so it doesn't go throw a huge process each time
+	 * dynamically get your current public ip address I recommend caching it somewhere so it doesn't go throw a huge process each time
 	 */
-	public static String getPublicIp() throws IOException 
+	public static String getIpPublic() throws IOException 
 	{
 		URL whatismyip = new URL("http://checkip.amazonaws.com");
 		BufferedReader in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
 		String ip = in.readLine(); //you get the IP as a String
 		return ip.trim();
 	}
+	
 	/**
 	 * your current computer adress's ip
 	 */
@@ -284,20 +282,19 @@ public class JavaUtil {
 		return inetAddress.getHostAddress();
 	}
 	
+	public static boolean isOnline()
+	{
+		return isOnline("www.google.com");
+	}
+	
 	public static boolean isOnline(String url)
 	{
 		try
 		{
-			if(url == null)
-				url = "www.google.com";
-			if(url.contains("https://")) {
-				url = url.replaceFirst("https://", "");
-			}
-			else if (url.contains("http://")){
-				url = url.replaceFirst("http://", "");
-			}
+			if(url.startsWith("http")) 
+				throw new IllegalArgumentException("isOnline Requires not HTTP/HTTPS protical");
 			Socket soc = new Socket();
-			InetSocketAddress adress = new InetSocketAddress(url,80);
+			InetSocketAddress adress = new InetSocketAddress(url, 80);
 			soc.setSoTimeout(3500);
 			soc.connect(adress);
 			soc.close();
@@ -309,29 +306,39 @@ public class JavaUtil {
 		}
 	}
 	
-	public static void getAllFilesFromDir(File directory, List<File> files,String extension) {
-
-	    // get all the files from a directory
-	    File[] fList = directory.listFiles();
-	    for (File file : fList) {
-	        if (file.isFile() && !files.contains(file) && file.getName().endsWith(extension)) {
+	public static void getDirFiles(File dir, Set<File> files, String ext, boolean blackList) 
+	{
+	    for (File file : dir.listFiles()) 
+	    {
+	    	boolean isType = blackList ? (!file.getName().endsWith(ext)) : (file.getName().endsWith(ext) || ext.equals("*") );
+	        if (file.isFile() && isType)
+	        {
 	            files.add(file);
-	        } else if (file.isDirectory()) {
-	        	getAllFilesFromDir(file, files, extension);
+	        }
+	        else if (file.isDirectory()) 
+	        {
+	        	getDirFiles(file, files, ext, blackList);
 	        }
 	    }
 	}
-	public static void getAllFilesFromDir(File directory, List<File> files) {
-
-	    // get all the files from a directory
-	    File[] fList = directory.listFiles();
-	    for (File file : fList) {
-	        if (file.isFile() && !files.contains(file)) {
-	            files.add(file);
-	        } else if (file.isDirectory()) {
-	        	getAllFilesFromDir(file, files);
-	        }
-	    }
+	
+	public static void getDirFiles(File dir, Set<File> files) 
+	{
+		getDirFiles(dir, files, "*", false);
+	}
+	
+	public static Set<File> getDirFiles(File dir)
+	{
+		Set<File> files = new HashSet();
+		getDirFiles(dir, files);
+		return files;
+	}
+	
+	public static Set<File> getDirFiles(File dir, String ext)
+	{
+		Set<File> files = new HashSet();
+		getDirFiles(dir, files, ext, false);
+		return files;
 	}
 	
 	public static void deleteDir(File dir)
@@ -346,40 +353,39 @@ public class JavaUtil {
 		}
 	}
 	
-	public static Color getColorFromMsAcess(int p_78258_4_)
-	{
-		
-		int red = (int)(p_78258_4_ >> 16 & 255);
-        int green = (int)(p_78258_4_ >> 8 & 255);
-        int blue = (int)(p_78258_4_ & 255);
-        int alpha = (int)(p_78258_4_ >> 24 & 255);
-         return new Color(red,green,blue,alpha);
+	public static Color getColor(int color)
+	{	
+		int red = (int)(color >> 16 & 255);
+        int green = (int)(color >> 8 & 255);
+        int blue = (int)(color & 255);
+        int alpha = (int)(color >> 24 & 255);
+        return new Color(red, green, blue, alpha);
 	}
 	
-	public static int gethex(int r, int g, int b, int a) {
+	public static int getColor(int r, int g, int b, int a)
+	{
         return a << 24 | r << 16 | g << 8 | b;
     }
 	
-	public static int getMs(int ms, double[] mul) 
+	public static int getColor(Color c)
 	{
-		Color c = getColorFromMsAcess(ms);
+		return getColor(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
+	}
+	
+	public static int multiplyColor(int color, double[] mul) 
+	{
+		Color c = getColor(color);
 		double rmul = mul[0];
 		double gmul = mul[1];
 		double bmul = mul[2];
-		int r = (int)(c.getRed() * rmul);
-		int g = (int)(c.getGreen() * gmul);
-		int b = (int)(c.getBlue() * bmul);
-		if(r >= 255)
-			r = 255;
-		if(g >= 255)
-			g = 255;
-		if(b >= 255)
-			b = 255;//If it's greater then white return white
-
-		return gethex(r, g, b, 0);
+		int r = ((int)(c.getRed() * rmul) & 255);
+		int g = ((int)(c.getGreen() * gmul) & 255);
+		int b = ((int)(c.getBlue() * bmul) & 255);
+		return getColor(r, g, b, c.getAlpha());
 	}
 
-	public static boolean isSpecialChar(char c){
+	public static boolean isSpecialChar(char c)
+	{
 		return SPECIALCHARS.contains("" + c);
 	}
 	
@@ -397,10 +403,9 @@ public class JavaUtil {
 				return true;
 		return false;
 	}
+	
 	/**
 	 * Ejects a string that is whitespaced
-	 * @param s
-	 * @return
 	 */
 	public static String toWhiteSpaced(String s)
 	{
@@ -1241,7 +1246,7 @@ public class JavaUtil {
 	 * @return ' ' if none is found
 	 */
 	public static char getNumId(String str) {
-		str = str.trim();
+		str = str.trim().toLowerCase();
 		String last = "" + str.charAt(str.length()-1);
 		if(numberIds.contains(last))
 			return last.toLowerCase().charAt(0);
@@ -1311,9 +1316,10 @@ public class JavaUtil {
 		int indexdot = 0;
 		if(s.indexOf('.') == 0 || s.indexOf('.') == s.length() - 1 || s.indexOf('-') > 0)
 			return false;
+		s = s.toLowerCase();
 		for(int i=0;i<s.length();i++)
 		{
-			String character = s.substring(i, i+1).toLowerCase();
+			String character = s.substring(i, i+1);
 			boolean lastindex = i == s.length() -1;
 			if(check.contains(character))
 			{
@@ -1325,12 +1331,7 @@ public class JavaUtil {
 			}
 			if(!valid.contains(character))
 			{
-				if(i + 1 < s.length())
-					return false;
-				if(lastindex && valid_endings.contains(character) )
-				{
-					return character.equals("d") || character.equals("f");
-				}
+				return lastindex && valid_endings.contains(character);
 			}
 		}
 		return true;
@@ -1447,6 +1448,9 @@ public class JavaUtil {
 		return clazz;
 	}
 	
+	/**
+	 * combine two static arrays into one
+	 */
 	public static <T> T[] concat(T[] a, T[] b)
 	{
 		T[] c = (T[]) Array.newInstance(a.getClass().getComponentType(), a.length + b.length);
@@ -1454,7 +1458,10 @@ public class JavaUtil {
 	    System.arraycopy(b, 0, c, a.length, b.length);
 		return c;
 	}
-
+	
+	/**
+	 * increase a static array by x amount of indices
+	 */
 	public static <T> T[] increase(T[] src, int increment)
 	{
 		T[] arr = (T[]) Array.newInstance(src.getClass().getComponentType(), src.length + increment);
@@ -1463,11 +1470,31 @@ public class JavaUtil {
 	}
 	
 	/**
-	 * split with qutoe ignoring support
+	 * split with quote ignoring support
 	 */
-	public static String[] split(String valuesStr, char comma, char lquote, char rquote) 
+	public static String[] split(String str, char sep, char lquote, char rquote) 
 	{
-		return null;
+		List<String> list = new ArrayList();
+		boolean inside = false;
+		for(int i = 0; i < str.length(); i += 1)
+		{
+			String a = str.substring(i, i + 1);
+			String prev = str.substring(i-1, i);
+			boolean escape = prev.charAt(0) ==  '\\';
+			if(a.equals("" + lquote) && !escape || a.equals("" + rquote) && !escape)
+			{
+				inside = !inside;
+			}
+			if(a.equals("" + sep) && !inside)
+			{
+				String section = str.substring(0, i);
+				list.add(section);
+				str = str.substring(i + ("" + sep).length(), str.length());
+				i = -1;
+			}
+		}
+		list.add(str);//add the rest of the string
+		return JavaUtil.toStaticStringArray(list);
 	}
 	
 }

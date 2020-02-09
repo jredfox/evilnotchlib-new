@@ -9,9 +9,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 
 /**
- * line library 3.0 has a more sophisticated parser system, easier to manipulate variables and extend upon.
- * the string parsing is surrounded upon Section API which you can add more sections in your sub classes during construction
- * Should be simply overall better and faster and more optimized. Most importantly you should be able to have Config Organizational Sections like forge's config allowing for less files to be parsed when using the line library.
+ * line library 3.0. Describe an Object in the use of a single line
  * @author jredfox
  */
 public class Line extends AbstractLine{
@@ -25,8 +23,7 @@ public class Line extends AbstractLine{
 	public char rquote;
 	public char equals;
 	public char comma;
-	protected List<Section> sections = new ArrayList(4);
-//	public Comment comment;
+	public List<Section> sections = new ArrayList(4);
 	public static final String[] types = {"B", "S", "I", "L", "F", "D", "Z"};
 	public static final String version = "3.0";
 	
@@ -35,22 +32,22 @@ public class Line extends AbstractLine{
 	 */
 	public Line() 
 	{
-		this(':', '<', '>', '{', '}', '"', '"', '=', ',');
+		this('"', '"', ':', '<', '>', '{', '}', '=', ',');
 	}
 	
 	/**
 	 * everything is customizable for parsing
 	 */
-	public Line(char sep, char lmeta, char rmeta, char lmetaJson, char rmetaJson, char lquote, char rquote, char equals, char comma)
+	public Line(char lquote, char rquote, char sep, char lmeta, char rmeta, char lmetaJson, char rmetaJson, char equals, char comma)
 	{
 		super();
+		this.lquote = lquote;
+		this.rquote = rquote;
 		this.sep = sep;
 		this.lmeta = lmeta;
 		this.rmeta = rmeta;
 		this.lmetaJson = lmetaJson;
 		this.rmetaJSon = rmetaJson;
-		this.lquote = lquote;
-		this.rquote = rquote;
 		this.equals = equals;
 		this.comma = comma;
 		this.meta = new ArrayList(2);
@@ -75,9 +72,9 @@ public class Line extends AbstractLine{
 	 * every Line Object extending must NOT call super(String) but instead call, super() or super(chars...) 
 	 * as it will cause the object to parse before the subclass has a chance to construct
 	 */
-	public Line(String str, char sep, char lmeta, char rmeta, char lmetaJson, char rmetaJson, char lquote, char rquote, char equals, char comma)
+	public Line(String str, char lquote, char rquote, char sep, char lmeta, char rmeta, char lmetaJson, char rmetaJson, char equals, char comma)
 	{
-		this(sep, lmeta, rmeta, lmetaJson, rmetaJson, lquote, rquote, equals, comma);
+		this(lquote, rquote, sep, lmeta, rmeta, lmetaJson, rmetaJson, equals, comma);
 		this.parse(str);
 	}
 
@@ -145,24 +142,32 @@ public class Line extends AbstractLine{
 	
 	public Object parseValue(String str)
 	{
-		if(str.endsWith(types[0]))
-			return Byte.parseByte(str.substring(0, str.length()-1));
-		else if(str.endsWith(types[1]))
-			return Short.parseShort(str.substring(0, str.length()-1));
-		else if(str.endsWith(types[2]))
-			return Integer.parseInt(str.substring(0, str.length()-1));
-		else if(str.endsWith(types[3]))
-			return Long.parseLong(str.substring(0, str.length()-1));
-		else if(str.endsWith(types[4]))
-			return Float.parseFloat(str.substring(0, str.length()-1));
-		else if(str.endsWith(types[5]))
-			return Double.parseDouble(str.substring(0, str.length()-1));
-		else if(JavaUtil.isBoolean(str))
+		if(JavaUtil.isBoolean(str))
+		{
 			return Boolean.parseBoolean(str.substring(0, str.length()-1));
-		else if(str.startsWith("" + this.lquote))
-			return JavaUtil.parseQuotes(str, 0, this.lquote + "" + this.rquote);
+		}
 		else if(JavaUtil.isNumber(str))
-			return Long.parseLong(str);
+		{
+			str = str.toLowerCase();
+			if(str.endsWith(types[0]))
+				return Byte.parseByte(str.substring(0, str.length()-1));
+			else if(str.endsWith(types[1]))
+				return Short.parseShort(str.substring(0, str.length()-1));
+			else if(str.endsWith(types[2]))
+				return Integer.parseInt(str.substring(0, str.length()-1));
+			else if(str.endsWith(types[3]))
+				return Long.parseLong(str.substring(0, str.length()-1));
+			else if(str.endsWith(types[4]))
+				return Float.parseFloat(str.substring(0, str.length()-1));
+			else if(str.endsWith(types[5]))
+				return Double.parseDouble(str.substring(0, str.length()-1));
+			else
+				return Long.parseLong(str);
+		}
+		else if(str.startsWith("" + this.lquote))
+		{
+			return JavaUtil.parseQuotes(str, 0, this.lquote + "" + this.rquote);
+		}
 		return str.trim();//asserts that the value is now a string and will keep it trimed
 	}
 

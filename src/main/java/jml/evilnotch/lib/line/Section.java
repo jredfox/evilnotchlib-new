@@ -19,7 +19,7 @@ public class Section {
 	}
 	
 	/**
-	 * if the section doesn't exist it will be null inside of the string array
+	 * split string into sections. If the section doesn't exist it will be null inside of the String[] array
 	 */
 	public static String[] splitSections(String string, List<Section> sections)
 	{
