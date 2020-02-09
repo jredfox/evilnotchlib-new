@@ -18,6 +18,7 @@ import jml.evilnotch.lib.json.JSONObject;
 import jml.evilnotch.lib.json.serialize.JSONSerializer;
 import jml.evilnotch.lib.line.Line;
 import jml.evilnotch.lib.simple.SimpleConfig;
+import scala.Char;
 
 public class MainJava {
 	

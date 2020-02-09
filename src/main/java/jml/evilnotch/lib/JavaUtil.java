@@ -336,13 +336,22 @@ public class JavaUtil {
 	
 	public static Set<File> getDirFiles(File dir, String ext)
 	{
+		return getDirFiles(dir, ext, false);
+	}
+	
+	public static Set<File> getDirFiles(File dir, String ext, boolean blackList)
+	{
 		Set<File> files = new HashSet();
-		getDirFiles(dir, files, ext, false);
+		getDirFiles(dir, files, ext, blackList);
 		return files;
 	}
 	
 	public static void deleteDir(File dir)
 	{
+		if(!dir.exists() || !dir.isDirectory())
+		{
+			throw new IllegalArgumentException("directory doesn't exist or is not a directory!" + dir.getAbsoluteFile().toString());//sanity check
+		}
 		try 
 		{
 			FileUtils.deleteDirectory(dir);
@@ -389,15 +398,24 @@ public class JavaUtil {
 		return SPECIALCHARS.contains("" + c);
 	}
 	
-	public static boolean isStringAlphaNumeric(String str){
-		str = toWhiteSpaced(str);
+	/**
+	 * allows for white spacing
+	 */
+	public static boolean isAlphanumeric(String str)
+	{
+		str = whiteSpaced(str);
 		for(char c : str.toCharArray())
 			if(!isCharAlphaNumeric(c))
 				return false;
 		return true;
 	}
-	public static boolean containsAlphaNumeric(String str){
-		str = toWhiteSpaced(str);
+	
+	/**
+	 * allows for white spacing
+	 */
+	public static boolean containsAlphaNumeric(String str)
+	{
+		str = whiteSpaced(str);
 		for(char c : str.toCharArray())
 			if(isCharAlphaNumeric(c))
 				return true;
@@ -407,43 +425,60 @@ public class JavaUtil {
 	/**
 	 * Ejects a string that is whitespaced
 	 */
-	public static String toWhiteSpaced(String s)
+	public static String whiteSpaced(String s)
 	{
 		return s.replaceAll("\\s+", "");
 	}
+	
 	/**
-	 * Supports all languages
-	 * Difference between is alphabetic and isLetter is that some languages combiners and vowels 
+	 * Supports all languages. every letter is alphabetical but, not every alphabetical char is a letter such as greek vowels
 	 */
-	public static boolean isCharAlphaNumeric(char c){
+	public static boolean isCharAlphaNumeric(char c)
+	{
 		return Character.isAlphabetic(c) || Character.isDigit(c);
 	}
-	public static boolean isCharLetterNumeric(char c){
-		return Character.isLetterOrDigit((int)c);
-	}
 	
-	@SuppressWarnings("rawtypes")
-	public static void moveFileFromJar(Class clazz,String input,File output,boolean replace) {
-		if(output.exists() && !replace)
-			return;
-		try {
-			InputStream inputstream =  clazz.getResourceAsStream(input);
-			FileOutputStream outputstream = new FileOutputStream(output);
-			output.createNewFile();
-			IOUtils.copy(inputstream,outputstream);
-			inputstream.close();
-			outputstream.close();
-		} catch (Exception io) {io.printStackTrace();}
-	}
-	
-	public static void printTime(long time,String msg) {
-		System.out.println(msg + (System.currentTimeMillis()-time) + "ms" );
-	}
-	
-	public static void writeToClipboard(String s, ClipboardOwner owner) 
+	/**
+	 * Supports all languages. every letter is alphabetical but, not every alphabetical char is a letter such as greek vowels
+	 */
+	public static boolean isCharLetterNumeric(char c)
 	{
-		if(s == null)
-			s = "null";
+		return Character.isLetterOrDigit((int) c);
+	}
+	
+	public static void moveFileFromJar(Class clazz, String input, File output, boolean replace) 
+	{
+		if(output.exists() && !replace)
+		{
+			return;
+		}
+		try
+		{
+			InputStream stream =  clazz.getResourceAsStream(input);
+			FileOutputStream outputStream = new FileOutputStream(output);
+			IOUtils.copy(stream, outputStream);
+			stream.close();
+			outputStream.close();
+		}
+		catch (Exception io)
+		{
+			io.printStackTrace();
+		}
+	}
+	
+	public static void printTime(long time, String msg) 
+	{
+		System.out.println(msg + (System.currentTimeMillis() - time) + "ms");
+	}
+	
+	public static void copyClipboard(String s) 
+	{
+		copyClipboard(s, null);
+	}
+	
+	public static void copyClipboard(String s, ClipboardOwner owner) 
+	{
+		Validate.nonNull(s);
 	    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 	    Transferable transferable = new StringSelection(s);
 	    clipboard.setContents(transferable, owner);
