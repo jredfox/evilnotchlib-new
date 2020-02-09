@@ -60,8 +60,9 @@ import jml.evilnotch.lib.reflect.ReflectionHandler;
 import net.minecraft.util.ResourceLocation;
 
 public class JavaUtil {
-	public static final String SPECIALCHARS = "~!@#$%^&*()_+`'-=/,.<>?\"{}[]:;|" + "\\";
+	public static String SPECIALCHARS = "~!@#$%^&*()_+`'-=/,.<>?\"{}[]:;|" + "\\";
 	public static String numberIds = "bsilfd";
+	public static int arrayInitCapacity = 10;
 	
 	/**
 	 * cast without loosing data and have a random negative number
@@ -486,14 +487,28 @@ public class JavaUtil {
 	    clipboard.setContents(transferable, owner);
 	}
 	
-	public static <T> T[] toArray(List<T> list)
+	/**
+	 * the array type cannot be casted out of Object[] use toArray(Collection col, Class clazz) instead
+	 */
+	public static Object[] toArray(Collection col)
 	{
-		return (T[]) list.toArray();
+		return toArray(col, Object.class);
+	}
+	
+	public static <T> T[] toArray(Collection<T> col, Class<T> clazz)
+	{
+	    T[] li = (T[]) Array.newInstance(clazz, col.size());
+	    int index = 0;
+	    for(T obj : col)
+	    {
+	        li[index++] = obj;
+	    }
+	    return li;
 	}
 	
 	public static <T> List<T> toArray(T[] arr)
 	{
-		List<T> list = new ArrayList(arr.length);
+		List<T> list = new ArrayList(arr.length + arrayInitCapacity);
 		for(T obj : arr)
 			list.add(obj);
 		return list;
@@ -512,13 +527,13 @@ public class JavaUtil {
 	}
 	
 	public static <K, V> SortedMap<K, V> sortByValues(Map<K, V> map) 
-	{ 
+	{
 		SortedMap m = sort(map, new Comparator<Map.Entry>()
 		{
 			@Override
-			public int compare(Map.Entry e1, Entry e2) 
+			public int compare(Map.Entry e1, Map.Entry e2) 
 			{
-				return ((Comparable)e1.getValue()).compareTo((Comparable)e2);
+				return ((Comparable)e1.getValue()).compareTo((Comparable)e2.getValue());
 			}
 		});
 		return m;
@@ -954,12 +969,7 @@ public class JavaUtil {
 			return false;
 		return Boolean.parseBoolean(str);
 	}
-	public static ArrayList toArray(Collection li) {
-		ArrayList list = new ArrayList();
-		for(Object obj : li)
-			list.add(obj);
-		return list;
-	}
+	
 	public static boolean isURL(String url) 
 	{
 		try 
@@ -1370,7 +1380,7 @@ public class JavaUtil {
 			}
 		}
 		list.add(str);//add the rest of the string
-		return JavaUtil.toArray(list);
+		return JavaUtil.toArray(list, String.class);
 	}
 	
 }
