@@ -38,6 +38,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -405,7 +407,7 @@ public class JavaUtil {
 	{
 		str = whiteSpaced(str);
 		for(char c : str.toCharArray())
-			if(!isCharAlphaNumeric(c))
+			if(!isAlphanumeric(c))
 				return false;
 		return true;
 	}
@@ -413,11 +415,11 @@ public class JavaUtil {
 	/**
 	 * allows for white spacing
 	 */
-	public static boolean containsAlphaNumeric(String str)
+	public static boolean containsAlphanumeric(String str)
 	{
 		str = whiteSpaced(str);
 		for(char c : str.toCharArray())
-			if(isCharAlphaNumeric(c))
+			if(isAlphanumeric(c))
 				return true;
 		return false;
 	}
@@ -433,7 +435,7 @@ public class JavaUtil {
 	/**
 	 * Supports all languages. every letter is alphabetical but, not every alphabetical char is a letter such as greek vowels
 	 */
-	public static boolean isCharAlphaNumeric(char c)
+	public static boolean isAlphanumeric(char c)
 	{
 		return Character.isAlphabetic(c) || Character.isDigit(c);
 	}
@@ -441,7 +443,7 @@ public class JavaUtil {
 	/**
 	 * Supports all languages. every letter is alphabetical but, not every alphabetical char is a letter such as greek vowels
 	 */
-	public static boolean isCharLetterNumeric(char c)
+	public static boolean isLetterNumeric(char c)
 	{
 		return Character.isLetterOrDigit((int) c);
 	}
@@ -484,265 +486,103 @@ public class JavaUtil {
 	    clipboard.setContents(transferable, owner);
 	}
 	
-	public static Object[] toStaticArray(List list){
-		Object[] li = new Object[list.size()];
-		for(int i=0;i<list.size();i++)
-			li[i] = list.get(i);
-		return li;
-	}
-	public static String[] toStaticStringArray(List list){
-		String[] li = new String[list.size()];
-		for(int i=0;i<list.size();i++)
-			li[i] = list.get(i).toString();
-		return li;
+	public static <T> T[] toArray(List<T> list)
+	{
+		return (T[]) list.toArray();
 	}
 	
-	public static String getStaticArrayStringWithLiteral(int[] list)
+	public static <T> List<T> toArray(T[] arr)
 	{
-		String str = "";
-		for(int i=0;i<list.length;i++)
-		{
-			if(i != 0)
-				str += " ";
-			str += list[i] + "i" + ",";
-		}
-		if(str.equals(""))
-			return null;
-		return str.substring(0,str.length()-1);
-	}
-	public static String getStaticArrayString(boolean[] list)
-	{
-		String str = "";
-		for(int i=0;i<list.length;i++)
-		{
-			if(i != 0)
-				str += " ";
-			str += list[i] + ",";
-		}
-		if(str.equals(""))
-			return null;
-		return str.substring(0,str.length()-1);
-	}
-	public static String getStaticArrayStringWithLiteral(byte[] list)
-	{
-		String str = "";
-		for(int i=0;i<list.length;i++)
-		{
-			if(i != 0)
-				str += " ";
-			str += list[i] + "b" + ",";
-		}
-		if(str.equals(""))
-			return null;
-		return str.substring(0,str.length()-1);
-	}
-	public static String getStaticArrayStringWithLiteral(short[] list)
-	{
-		String str = "";
-		for(int i=0;i<list.length;i++)
-		{
-			if(i != 0)
-				str += " ";
-			str += list[i] + "s" + ",";
-		}
-		if(str.equals(""))
-			return null;
-		return str.substring(0,str.length()-1);
-	}
-	public static String getStaticArrayStringWithLiteral(long[] list)
-	{
-		String str = "";
-		for(int i=0;i<list.length;i++)
-		{
-			if(i != 0)
-				str += " ";
-			str += list[i] + "l" + ",";
-		}
-		if(str.equals(""))
-			return null;
-		return str.substring(0,str.length()-1);
-	}
-	public static String getStaticArrayStringWithLiteral(float[] list)
-	{
-		String str = "";
-		for(int i=0;i<list.length;i++)
-		{
-			if(i != 0)
-				str += " ";
-			str += list[i] + "f" + ",";
-		}
-		if(str.equals(""))
-			return null;
-		return str.substring(0,str.length()-1);
-	}
-	public static String getStaticArrayStringWithLiteral(double[] list)
-	{
-		String str = "";
-		for(int i=0;i<list.length;i++)
-		{
-			if(i != 0)
-				str += " ";
-			str += list[i] + "d" + ",";
-		}
-		if(str.equals(""))
-			return null;
-		return str.substring(0,str.length()-1);
-	}
-	public static String getStaticArrayStringWithLiteral(String[] obj)
-	{
-		String str = "";
-		for(int i=0;i<obj.length;i++)
-		{
-			if(i != 0)
-				str += " ";
-			str += "\"" + obj[i].toString() + "\",";
-		}
-		if(str.equals(""))
-			return null;
-		
-		return str.substring(0,str.length()-1);
-	}
-	
-	public static <T extends Object> List<T> staticToArray(Object[] objs)
-	{
-		List<T> list = new ArrayList();
-		for(Object obj : objs)
-			list.add((T)obj);
+		List<T> list = new ArrayList(arr.length);
+		for(T obj : arr)
+			list.add(obj);
 		return list;
 	}
 	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static List<Integer> staticToArray(int[] values) 
+	public static <K, V> SortedMap<K, V> sortByKeys(Map<K, V> map)
 	{
-		ArrayList<Integer> list = new ArrayList();
-		for(int i=0;i<values.length;i++)
-	    	list.add(values[i]);
-		return list;
-	}
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static List<Boolean> staticToArray(boolean[] values) 
-	{
-		ArrayList<Boolean> list = new ArrayList();
-		for(int i=0;i<values.length;i++)
-	    	list.add(values[i]);
-		return list;
-	}
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static List<Byte> staticToArray(byte[] values) 
-	{
-		ArrayList<Byte> list = new ArrayList();
-		for(int i=0;i<values.length;i++)
-	    	list.add(values[i]);
-		return list;
-	}
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static List<Short> staticToArray(short[] values) 
-	{
-		ArrayList<Short> list = new ArrayList();
-		for(int i=0;i<values.length;i++)
-	    	list.add(values[i]);
-		return list;
-	}
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static List<Long> staticToArray(long[] values) 
-	{
-		ArrayList<Long> list = new ArrayList();
-		for(int i=0;i<values.length;i++)
-	    	list.add(values[i]);
-		return list;
-	}
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static List<Float> staticToArray(float[] values) 
-	{
-		ArrayList<Float> list = new ArrayList();
-		for(int i=0;i<values.length;i++)
-	    	list.add(values[i]);
-		return list;
-	}
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static List<Double> staticToArray(double[] values) 
-	{
-		ArrayList<Double> list = new ArrayList();
-		for(int i=0;i<values.length;i++)
-	    	list.add(values[i]);
-		return list;
+		return new TreeMap<K, V>(map);
 	}
 	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static HashMap sortByValues(HashMap map) 
+	public static <K, V> SortedMap<K, V> sort(Map<K, V> map, Comparator c)
+	{
+		TreeMap<K, V> ordered = new TreeMap<K, V>(c);
+		ordered.putAll(map);
+		return ordered;
+	}
+	
+	public static <K, V> SortedMap<K, V> sortByValues(Map<K, V> map) 
 	{ 
-	     List list = new LinkedList(map.entrySet());
-	     // Defined Custom Comparator here
-	     Collections.sort(list, new Comparator() {
-	          public int compare(Object o1, Object o2) {
-	             return ((Comparable) ((Map.Entry) (o1)).getValue())
-	                .compareTo(((Map.Entry) (o2)).getValue());
-	          }
-	     });
-
-	     // Here I am copying the sorted list in HashMap
-	     // using LinkedHashMap to preserve the insertion order
-	     HashMap sortedHashMap = new LinkedHashMap();
-	     for (Iterator it = list.iterator(); it.hasNext();) {
-	            Map.Entry entry = (Map.Entry) it.next();
-	            sortedHashMap.put(entry.getKey(), entry.getValue());
-	     } 
-	     return sortedHashMap;
-	}
-	public static boolean stringContainsChars(String a,String b){
-		for(char c : a.toCharArray())
-			if(!b.contains("" +c))
-				return false;
-		return true;
-	}
-	/**
-	 * Returns Cross platform file name removing any illegal chars/names
-	 * Supports mac and linux not having the "." at begining index if you want to preserver that check if it has a . to begin with and if your on windows
-	 */
-	public static String toFileCharacters(String s)
-	{ 
-		String invalid = "*/<>?\":|" + "\\";
-		String resault = "";
-		String sub = "";
-		for (int i=0;i<s.length();i++)
+		SortedMap m = sort(map, new Comparator<Map.Entry>()
 		{
-			sub = s.substring(i, i+1);
-			if(i == 0 && sub.equals("."))
-				continue;//hotfix stop . from being at 0
-			if (!invalid.contains(sub) && resault.length() < 240)
-				resault = resault + sub;
-		}
-		resault = toConWindowsCharacters(resault);
-		if(resault.equals(""))
-			resault = "failedModName.txt";
-		
-		return resault;
-	}
-	
-	/**
-	 * internal use toFileCharacters() instead
-	 */
-	public static String toConWindowsCharacters(String resault) 
-	{
-		String extension = "";
-		if(resault.contains("."))
-		{
-			extension = resault.substring(resault.lastIndexOf('.'), resault.length());
-			resault = resault.substring(0, resault.lastIndexOf('.'));
-		}
-		//windows junk
-		if (resault.toUpperCase().equals("CON") || resault.toUpperCase().equals("PRN") || resault.toUpperCase().equals("AUX") || resault.toUpperCase().equals("NUL"))
-			return resault + "_failed" + extension;
-		for (int j=0;j<10;j++)
-		{
-			String com = "COM" + String.valueOf(j);
-			String lpt = "LPT" + String.valueOf(j);
-			if (resault.toUpperCase().equals(com) || resault.toUpperCase().equals(lpt))
+			@Override
+			public int compare(Map.Entry e1, Entry e2) 
 			{
-				return resault + "_failed" + extension;
+				return ((Comparable)e1.getValue()).compareTo((Comparable)e2);
+			}
+		});
+		return m;
+	}
+	
+	/**
+	 * Returns Cross platform file name removing any illegal chars/names.
+	 */
+	public static String toFileChars(String s) throws IllegalArgumentException
+	{ 
+		//TODO:
+		String invalid = "*/<>?\":|" + "\\";
+		String name = "";
+		Validate.isFalse(s.isEmpty());
+		StringBuilder builder = new StringBuilder();
+		for(int i=0; i < s.length(); i++)
+		{
+			String sub = s.substring(i, i + 1);
+			if(!invalid.contains(sub))
+			{
+				builder.append(sub);
 			}
 		}
-		return resault + extension;
+		name = toFileCharsWindows(builder.toString());
+		if(name.endsWith(" ") || name.endsWith("\\."))
+		{
+			
+		}
+		if(name.length() > 255)
+		{
+			name = name.substring(0, 255 + 1);
+		}
+		else if(name.isEmpty())
+		{
+			name = "failed";
+		}
+		return name;
+	}
+	
+	/**
+	 * remove reserved os operating file names
+	 */
+	public static String toFileCharsWindows(String str) 
+	{
+		String[] parts = JavaUtil.splitFirst(str, '.');
+		String check = parts[0];
+		if(check.equalsIgnoreCase("CON") || check.equalsIgnoreCase("PRN") || check.equalsIgnoreCase("AUX") || check.equalsIgnoreCase("NUL"))
+		{
+			str = check + "_" + (parts.length > 0 ? parts[1] : "");
+		}
+		else
+		{
+			for (int j=0; j < 10; j++)
+			{
+				String com = "COM" + j;
+				String lpt = "LPT" + j;
+				if(check.equalsIgnoreCase(com) || check.equalsIgnoreCase(lpt))
+				{
+					str = check + "_" + (parts.length > 0 ? parts[1] : "");
+					break;
+				}
+			}
+		}
+		return str;
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -1299,7 +1139,7 @@ public class JavaUtil {
 			if(c == reg)
 			{
 				parts[0] = s.substring(0, i);
-				parts[1] = s.substring(i+1, s.length());
+				parts[1] = s.substring(i + 1, s.length());
 				break;
 			}
 		}
@@ -1307,6 +1147,7 @@ public class JavaUtil {
 			return new String[]{s};
 		return parts;
 	}
+	
 	public static String parseQuotes(String s, int index, String q) 
 	{
 		if(index == -1)
@@ -1529,7 +1370,7 @@ public class JavaUtil {
 			}
 		}
 		list.add(str);//add the rest of the string
-		return JavaUtil.toStaticStringArray(list);
+		return JavaUtil.toArray(list);
 	}
 	
 }

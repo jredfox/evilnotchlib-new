@@ -24,6 +24,7 @@ public class MainJava {
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException
 	{
+		JavaUtil.copyClipboard("Your PC HAS JUST BEEN Hacked!");
 		try
 		{
 			String[] values = JavaUtil.split(",22,1,10,true,false,\"-1,2,3,4,5\",3", ',', '"', '"');
