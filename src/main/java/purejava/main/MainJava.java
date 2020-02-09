@@ -1,5 +1,6 @@
 package purejava.main;
 
+import java.awt.Color;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -10,8 +11,6 @@ public class MainJava {
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException
 	{
-		if(true)
-		return;
 		try
 		{
 			String[] values = JavaUtil.split(",22,1,10,true,false,\"-1,2,3,4,5\",3", ',', '"', '"');

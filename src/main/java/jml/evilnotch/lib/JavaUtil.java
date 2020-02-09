@@ -365,6 +365,9 @@ public class JavaUtil {
 		}
 	}
 	
+	/**
+	 * supports alpha
+	 */
 	public static Color getColor(int color)
 	{	
 		int red = (int)(color >> 16 & 255);
@@ -374,26 +377,53 @@ public class JavaUtil {
         return new Color(red, green, blue, alpha);
 	}
 	
-	public static int getColor(int r, int g, int b, int a)
+	/**
+	 * converts rgba into a single integer
+	 */
+	public static int getRGB(int r, int g, int b, int a)
 	{
         return a << 24 | r << 16 | g << 8 | b;
     }
 	
-	public static int getColor(Color c)
+	/**
+	 * convert float(between 0.0F-1.0F) to int hex colors
+	 */
+	public static Color getColor(float r, float g, float b, float a)
 	{
-		return getColor(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
+	    return new Color(r, g, b, a);
 	}
 	
-	public static int multiplyColor(int color, double[] mul) 
+	public static float[] getSRGB(Color c)
 	{
-		Color c = getColor(color);
-		double rmul = mul[0];
-		double gmul = mul[1];
-		double bmul = mul[2];
-		int r = ((int)(c.getRed() * rmul) & 255);
-		int g = ((int)(c.getGreen() * gmul) & 255);
-		int b = ((int)(c.getBlue() * bmul) & 255);
-		return getColor(r, g, b, c.getAlpha());
+		return getSRGB(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
+	}
+	
+	/**
+	 * get the Float(0.0F-1.0F) color values from int RGBA
+	 */
+	public static float[] getSRGB(int r, int g, int b, int a)
+	{
+		float red = r / 255.0F;
+		float green = g / 255.0F;
+		float blue = b / 255.0F;
+		float alpha = a / 255.0F;
+		return new float[]{red, green, blue, alpha};
+	}
+	
+	public static Color multiplyColor(int color, int colorMult) 
+	{
+		return multiplyColor(getColor(color), getColor(colorMult));
+	}
+	
+	public static Color multiplyColor(Color color, Color colorMult)
+	{
+		float[] cols = getSRGB(color);
+		float[] mul = getSRGB(colorMult);
+		float r = cols[0] * mul[0];
+		float g = cols[1] * mul[1];
+		float b = cols[2] * mul[2];
+		float a = cols[3];//alpha remains constant if you want to assume alpha as 255 then ensure your int color has alpha of 255
+		return new Color(r, g, b, a);
 	}
 
 	public static boolean isSpecialChar(char c)
