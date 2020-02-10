@@ -266,7 +266,7 @@ public class JavaUtil {
 		return num instanceof Double || num instanceof DoubleObj;
 	}
 	
-	public static float range(float num, float min, float max)
+	public static double range(double num, double min, double max)
 	{
 		if(num < min)
 			num = min;
@@ -275,7 +275,7 @@ public class JavaUtil {
 		return num;
 	}
 	
-	public static double range(double num, double min, double max)
+	public static float range(float num, float min, float max)
 	{
 		if(num < min)
 			num = min;
@@ -444,6 +444,14 @@ public class JavaUtil {
 	/**
 	 * converts rgba into a single integer
 	 */
+	public static int getRGB(Color c)
+	{
+		return getRGB(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
+	}
+	
+	/**
+	 * converts rgba into a single integer
+	 */
 	public static int getRGB(int r, int g, int b, int a)
 	{
         return a << 24 | r << 16 | g << 8 | b;
@@ -536,19 +544,32 @@ public class JavaUtil {
 	}
 	
 	/**
-	 * Supports all languages. every letter is alphabetical but, not every alphabetical char is a letter such as greek vowels
+	 * doesn't support Unicode use int codepoints from a string instead
 	 */
 	public static boolean isAlphanumeric(char c)
+	{
+		return isAlphanumeric((int) c);
+	}
+	
+	/**
+	 * doesn't support Unicode use int codepoints from a string instead
+	 */
+	public static boolean isLetterNumeric(char c)
+	{
+		return isLetterNumeric((int) c);
+	}
+	
+	/**
+	 * doesn't support non english Alphabetical letters is isLetterNumeric instead for unicode full support
+	 */
+	public static boolean isAlphanumeric(int c)
 	{
 		return Character.isAlphabetic(c) || Character.isDigit(c);
 	}
 	
-	/**
-	 * Supports all languages. every letter is alphabetical but, not every alphabetical char is a letter such as greek vowels
-	 */
-	public static boolean isLetterNumeric(char c)
+	public static boolean isLetterNumeric(int c)
 	{
-		return Character.isLetterOrDigit((int) c);
+		return Character.isLetterOrDigit(c);
 	}
 	
 	public static void moveFileFromJar(Class clazz, String input, File output, boolean replace) 
