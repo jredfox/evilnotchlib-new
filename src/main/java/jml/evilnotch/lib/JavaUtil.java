@@ -63,6 +63,7 @@ public class JavaUtil {
 	public static String SPECIALCHARS = "~!@#$%^&*()_+`'-=/,.<>?\"{}[]:;|" + "\\";
 	public static String numberIds = "bsilfd";
 	public static int arrayInitCapacity = 10;
+	public static final int fileLimit = 255;//since the max file limit 254 characters make it 200 as the max path must be 260
 	
 	/**
 	 * cast without loosing data and have a random negative number
@@ -415,6 +416,9 @@ public class JavaUtil {
 		return multiplyColor(getColor(color), getColor(colorMult));
 	}
 	
+	/**
+	 * doesn't multiply alpha
+	 */
 	public static Color multiplyColor(Color color, Color colorMult)
 	{
 		float[] cols = getSRGB(color);
@@ -422,7 +426,7 @@ public class JavaUtil {
 		float r = cols[0] * mul[0];
 		float g = cols[1] * mul[1];
 		float b = cols[2] * mul[2];
-		float a = cols[3];//alpha remains constant if you want to assume alpha as 255 then ensure your int color has alpha of 255
+		float a = cols[3];
 		return new Color(r, g, b, a);
 	}
 
@@ -570,14 +574,38 @@ public class JavaUtil {
 	}
 	
 	/**
-	 * Returns Cross platform file name removing any illegal chars/names.
+	 * returns a SortedMap based on keySets
 	 */
-	public static String toFileChars(String s) throws IllegalArgumentException
-	{ 
-		//TODO:
-		String invalid = "*/<>?\":|" + "\\";
+	public static <K, V> SortedMap<K, V> newSortedMap()
+	{
+		return newSortedMap(false);
+	}
+	
+	/**
+	 * create a SortedMap with sortByKeys or sortByValues
+	 */
+	public static <K, V> SortedMap<K, V> newSortedMap(boolean sortByValues)
+	{
+		return sortByValues ? 
+		new TreeMap(new Comparator<Map.Entry>()
+		{
+			@Override
+			public int compare(Map.Entry e1, Map.Entry e2) 
+			{
+				return ((Comparable)e1.getValue()).compareTo((Comparable)e2.getValue());
+			}
+		}) 
+		: new TreeMap();
+	}
+	
+	/**
+	 * Returns Cross platform File removing invalid characters from the File name doesn't remove invalid parent Directory names
+	 */
+	public static File getValidFile(File f)
+	{
+		String s = f.getName();
 		String name = "";
-		Validate.isFalse(s.isEmpty());
+		String invalid = "*/<>?\":|" + "\\";
 		StringBuilder builder = new StringBuilder();
 		for(int i=0; i < s.length(); i++)
 		{
@@ -587,32 +615,46 @@ public class JavaUtil {
 				builder.append(sub);
 			}
 		}
-		name = toFileCharsWindows(builder.toString());
-		if(name.endsWith(" ") || name.endsWith("\\."))
+		name = toWindowsNaming(builder.toString());
+		String parent = f.getAbsoluteFile().getParent();
+		String fileName = parent + "/" + name;
+		if(name.isEmpty())
+		{
+			fileName = parent + "/failed";
+		}
+		return trimFileToPath(new File(fileName));
+	}
+
+	/**
+	 * trims a File withing the 260 character range of the full path and reduces the name size as well
+	 */
+	//TODO:
+	public static File trimFileToPath(File file) 
+	{
+		String name = file.getName();
+		String path = file.getAbsolutePath().toString();
+		if(name.length() > fileLimit)
 		{
 			
 		}
-		if(name.length() > 255)
+		if(path.length() > fileLimit)
 		{
-			name = name.substring(0, 255 + 1);
+			
 		}
-		else if(name.isEmpty())
-		{
-			name = "failed";
-		}
-		return name;
+		return file;
 	}
-	
+
 	/**
-	 * remove reserved os operating file names
+	 * append an "_" if the file is an invalid windows name and also removes "." or " " at the end of the file name
 	 */
-	public static String toFileCharsWindows(String str) 
+	public static String toWindowsNaming(String str) 
 	{
 		String[] parts = JavaUtil.splitFirst(str, '.');
 		String check = parts[0];
+		String rest = (parts.length > 1 ? "." + parts[1] : "");
 		if(check.equalsIgnoreCase("CON") || check.equalsIgnoreCase("PRN") || check.equalsIgnoreCase("AUX") || check.equalsIgnoreCase("NUL"))
 		{
-			str = check + "_" + (parts.length > 0 ? parts[1] : "");
+			str = check + "_" + rest;
 		}
 		else
 		{
@@ -622,52 +664,29 @@ public class JavaUtil {
 				String lpt = "LPT" + j;
 				if(check.equalsIgnoreCase(com) || check.equalsIgnoreCase(lpt))
 				{
-					str = check + "_" + (parts.length > 0 ? parts[1] : "");
+					str = check + "_" + rest;
 					break;
 				}
 			}
 		}
+		String invalid = ". ";
+		str = removeEnding(str, invalid);
 		return str;
 	}
-
-	@SuppressWarnings("rawtypes")
-	public static void printMap(Map map)
+	
+	/**
+	 * removes invalid endings from a string
+	 */
+	public static String removeEnding(String str, String invalid) 
 	{
-		Iterator it = map.entrySet().iterator();
-		int index = 0;
-		System.out.print("[");
-		while(it.hasNext())
+		while(invalid.contains(str.substring(str.length() - 1, str.length())))
 		{
-			Map.Entry pair = (Entry) it.next();
-			System.out.print(" Key" + index + ":" + pair.getKey() + " Value"  + index + ":" + pair.getValue());
-			index++;
+			str = str.substring(0, str.length() - 1);
 		}
-		System.out.print("]\n");
+		return str;
 	}
 	
-	public static byte[] arrayToStaticBytes(List<Byte> list)
-	{
-		byte[] strstatic =  new byte[list.size()];
-		for(int i=0;i<list.size();i++)
-			strstatic[i] = list.get(i);
-		return strstatic;
-	}
-	public static int[] arrayToStaticInts(List<Integer> list)
-	{
-		int[] strstatic =  new int[list.size()];
-		for(int i=0;i<list.size();i++)
-			strstatic[i] = list.get(i);
-		return strstatic;
-	}
-	@SuppressWarnings("rawtypes")
-	public static Object[] arrayToStatic(List list)
-	{
-		Object[] strstatic = new Object[list.size()];
-		for(int i=0;i<list.size();i++)
-			strstatic[i] = list.get(i);
-		return strstatic;
-	}
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	//TODO:
 	public static void setList(List filelist,List list,int index)
 	{
 		for(int i=0;i<list.size();i++)
