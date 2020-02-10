@@ -14,12 +14,13 @@ public class MainJava {
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException
 	{
-		cleanDir(new File("."));
-		char[] chars = new char[JavaUtil.fileLimit];
-		System.out.println("main:" + chars.length);
+		cleanDir(new File("./eclipse"));
+		char[] chars = new char[JavaUtil.fileCharLimit + 10];
 		Arrays.fill(chars, 'A');
-		File f = JavaUtil.getValidFile(new File(".", new String(chars) + "E*&^"));
-		f.mkdir();
+		File f = new File("./eclipse", JavaUtil.toFileChars(new String(chars) + ".txt"));
+		f.createNewFile();
+		System.out.println(f.getName().length());
+		System.out.println(f.getAbsolutePath());
 //		f.delete();
 //		System.out.println(new File(f.getAbsolutePath()));
 		if(true)

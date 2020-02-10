@@ -60,10 +60,10 @@ import jml.evilnotch.lib.reflect.ReflectionHandler;
 import net.minecraft.util.ResourceLocation;
 
 public class JavaUtil {
-	public static String SPECIALCHARS = "~!@#$%^&*()_+`'-=/,.<>?\"{}[]:;|" + "\\";
-	public static String numberIds = "bsilfd";
-	public static int arrayInitCapacity = 10;
-	public static final int fileLimit = 255;//since the max file limit 254 characters make it 200 as the max path must be 260
+	public static final String SPECIALCHARS = "~!@#$%^&*()_+`'-=/,.<>?\"{}[]:;|" + "\\";
+	public static final String numberIds = "bsilfd";
+	public static final int arrayInitCapacity = 10;
+	public static final int fileCharLimit = 200;//since math path is 260 we want to be realitivly safe here
 	
 	/**
 	 * cast without loosing data and have a random negative number
@@ -266,6 +266,69 @@ public class JavaUtil {
 		return num instanceof Double || num instanceof DoubleObj;
 	}
 	
+	public static float range(float num, float min, float max)
+	{
+		if(num < min)
+			num = min;
+		else if(num > max)
+			num = max;
+		return num;
+	}
+	
+	public static double range(double num, double min, double max)
+	{
+		if(num < min)
+			num = min;
+		else if(num > max)
+			num = max;
+		return num;
+	}
+	
+	public static long range(long num, long min, long max)
+	{
+		if(num < min)
+			num = min;
+		else if(num > max)
+			num = max;
+		return num;
+	}
+	
+	public static int range(int num, int min, int max)
+	{
+		if(num < min)
+			num = min;
+		else if(num > max)
+			num = max;
+		return num;
+	}
+	
+	public static short range(short num, short min, short max)
+	{
+		if(num < min)
+			num = min;
+		else if(num > max)
+			num = max;
+		return num;
+	}
+	
+	public static byte range(byte num, byte min, byte max)
+	{
+		if(num < min)
+			num = min;
+		else if(num > max)
+			num = max;
+		return num;
+	}
+	
+	public static char range(char c, char min, char max)
+	{
+		if(c < min)
+			c = min;
+		else if(c > max)
+			c = max;
+		return c;
+	}
+	
 	/**
 	 * dynamically get your current public ip address I recommend caching it somewhere so it doesn't go throw a huge process each time
 	 */
@@ -296,7 +359,7 @@ public class JavaUtil {
 		try
 		{
 			if(url.startsWith("http")) 
-				throw new IllegalArgumentException("isOnline Requires not HTTP/HTTPS protical");
+				throw new IllegalArgumentException("isOnline Requires non HTTP/HTTPS protical");
 			Socket soc = new Socket();
 			InetSocketAddress adress = new InetSocketAddress(url, 80);
 			soc.setSoTimeout(3500);
@@ -352,9 +415,9 @@ public class JavaUtil {
 	
 	public static void deleteDir(File dir)
 	{
-		if(!dir.exists() || !dir.isDirectory())
+		if(!dir.isDirectory())
 		{
-			throw new IllegalArgumentException("directory doesn't exist or is not a directory!" + dir.getAbsoluteFile().toString());//sanity check
+			throw new IllegalArgumentException("file is not a directory! " + dir.getAbsoluteFile().toString());//sanity check
 		}
 		try 
 		{
@@ -423,11 +486,16 @@ public class JavaUtil {
 	{
 		float[] cols = getSRGB(color);
 		float[] mul = getSRGB(colorMult);
-		float r = cols[0] * mul[0];
-		float g = cols[1] * mul[1];
-		float b = cols[2] * mul[2];
+		float r = multiplyColor(cols[0], mul[0]);
+		float g = multiplyColor(cols[1], mul[1]);
+		float b = multiplyColor(cols[2], mul[2]);
 		float a = cols[3];
 		return new Color(r, g, b, a);
+	}
+
+	public static float multiplyColor(float color, float mult) 
+	{
+		return range(color * mult, 0.0F, 1.0F);
 	}
 
 	public static boolean isSpecialChar(char c)
@@ -599,11 +667,10 @@ public class JavaUtil {
 	}
 	
 	/**
-	 * Returns Cross platform File removing invalid characters from the File name doesn't remove invalid parent Directory names
+	 * Returns Cross platform File removing invalid characters from the File name and trims it to 200 characters
 	 */
-	public static File getValidFile(File f)
+	public static String toFileChars(String s)
 	{
-		String s = f.getName();
 		String name = "";
 		String invalid = "*/<>?\":|" + "\\";
 		StringBuilder builder = new StringBuilder();
@@ -616,32 +683,17 @@ public class JavaUtil {
 			}
 		}
 		name = toWindowsNaming(builder.toString());
-		String parent = f.getAbsoluteFile().getParent();
-		String fileName = parent + "/" + name;
 		if(name.isEmpty())
 		{
-			fileName = parent + "/failed";
+			return "failed";
 		}
-		return trimFileToPath(new File(fileName));
-	}
-
-	/**
-	 * trims a File withing the 260 character range of the full path and reduces the name size as well
-	 */
-	//TODO:
-	public static File trimFileToPath(File file) 
-	{
-		String name = file.getName();
-		String path = file.getAbsolutePath().toString();
-		if(name.length() > fileLimit)
+		else if(name.length() > fileCharLimit)
 		{
-			
+			int dot = name.lastIndexOf('.');
+			String ext = dot != -1 ? name.substring(dot, name.length()) : "";
+			name = name.substring(0, fileCharLimit - ext.length()) + ext;
 		}
-		if(path.length() > fileLimit)
-		{
-			
-		}
-		return file;
+		return name;
 	}
 
 	/**
@@ -649,6 +701,8 @@ public class JavaUtil {
 	 */
 	public static String toWindowsNaming(String str) 
 	{
+		if(str.isEmpty())
+			return str;
 		String[] parts = JavaUtil.splitFirst(str, '.');
 		String check = parts[0];
 		String rest = (parts.length > 1 ? "." + parts[1] : "");
