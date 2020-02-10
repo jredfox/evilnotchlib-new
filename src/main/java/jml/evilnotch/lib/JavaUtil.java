@@ -745,43 +745,77 @@ public class JavaUtil {
 			}
 		}
 		String invalid = ". ";
-		str = removeEnding(str, invalid);
+		str = trimEnd(str, invalid);
 		return str;
 	}
 	
 	/**
 	 * removes invalid endings from a string
 	 */
-	public static String removeEnding(String str, String invalid) 
+	public static String trimEnd(String str, String invalid) 
 	{
-		while(invalid.contains(str.substring(str.length() - 1, str.length())))
+		int index = -1;
+		for(int i = str.length(); i > 0; i--)
 		{
-			str = str.substring(0, str.length() - 1);
+			String s = str.substring(i - 1, i);
+			if(!invalid.contains(s))
+			{
+				index = i;
+				break;
+			}
 		}
-		return str;
+		return index != -1 ? str.substring(0, index) : "";
+	}
+	
+	public static String trimStart(String str, String invalid) 
+	{
+		int index = -1;
+		for(int i = 0; i < str.length(); i++)
+		{
+			String s = str.substring(i, i + 1);
+			if(!invalid.contains(s))
+			{
+				index = i;
+				break;
+			}
+		}
+		return index != -1 ? str.substring(index, str.length()) : "";
 	}
 	
 	//TODO:
-	public static void setList(List filelist,List list,int index)
+	public static String trim(String str, String invalid)
 	{
-		for(int i=0;i<list.size();i++)
+		str = trimStart(str, invalid);
+		str = trimEnd(str, invalid);
+		return str;
+	}
+	
+	/**
+	 * override one list from another starting at a specified index to the origin and will append if it cannot override
+	 */
+	public static void set(List org, List list2, int start)
+	{
+		for(int i=0; i < list2.size(); i++)
 		{
-			Object entry = list.get(i);
-			boolean flag = false;
-			if(index + i < filelist.size() && !flag)
-				filelist.set(index+i,entry);
-			else{
-				filelist.add(entry);
-				flag = true;
+			Object entry = list2.get(i);
+			int index = start + i;
+			if(index < org.size())
+			{
+				org.set(index, entry);
+			}
+			else
+			{
+				org.add(entry);
 			}
 		}
 	}
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public static void deleteListRange(List filelist,int index1,int index2)
+	
+	public static void remove(List list, int start, int end)
 	{
-		List<String> sub = filelist.subList(index1, index2);
+		List<String> sub = list.subList(start, end);
 		sub.clear();
 	}
+	
 	public static boolean ArrayhasEqualString(String[] list, String strhead) 
 	{
 		for(int i=0;i<list.length;i++)

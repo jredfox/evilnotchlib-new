@@ -15,14 +15,7 @@ public class MainJava {
 	public static void main(String[] args) throws FileNotFoundException, IOException
 	{
 		cleanDir(new File("./eclipse"));
-		char[] chars = new char[JavaUtil.fileCharLimit + 10];
-		Arrays.fill(chars, 'A');
-		File f = new File("./eclipse", JavaUtil.toFileChars(new String(chars) + ".txt"));
-		f.createNewFile();
-		System.out.println(f.getName().length());
-		System.out.println(f.getAbsolutePath());
-//		f.delete();
-//		System.out.println(new File(f.getAbsolutePath()));
+		System.out.println("\"" + JavaUtil.trim(".....   ....this is just a test.txt...   .....   ", ". ") + "\"");
 		if(true)
 		{
 			return;
