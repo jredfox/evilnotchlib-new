@@ -559,6 +559,16 @@ public class JavaUtil {
 		return isLetterNumeric((int) c);
 	}
 	
+	public static char toUpperCase(char c) 
+	{
+		return Character.toUpperCase(c);
+	}
+	
+	public static char toLowerCase(char c) 
+	{
+		return Character.toLowerCase(c);
+	}
+	
 	/**
 	 * doesn't support non english Alphabetical letters is isLetterNumeric instead for unicode full support
 	 */
@@ -629,12 +639,20 @@ public class JavaUtil {
 	    return li;
 	}
 	
-	public static <T> List<T> toArray(T[] arr)
+	public static <T> List<T> toArray(T... arr)
 	{
 		List<T> list = new ArrayList(arr.length + arrayInitCapacity);
 		for(T obj : arr)
 			list.add(obj);
 		return list;
+	}
+	
+	/**
+	 * get a static array from a list of parameter objects
+	 */
+	public static <T> T[] asArray(T... arr)
+	{
+		return arr;
 	}
 	
 	public static <K, V> SortedMap<K, V> sortByKeys(Map<K, V> map)
@@ -774,6 +792,9 @@ public class JavaUtil {
 		return str.substring(trimStartIndex(str, invalid), trimEndIndex(str, invalid));
 	}
 	
+	/**
+	 * returns the index of the last char that isn't invalid
+	 */
 	public static int trimEndIndex(String str, String invalid) 
 	{
 		int index = 0;
@@ -789,6 +810,9 @@ public class JavaUtil {
 		return index;
 	}
 	
+	/**
+	 * returns the index of the first char that isn't invalid
+	 */
 	public static int trimStartIndex(String str, String invalid) 
 	{
 		int index = 0;
@@ -830,193 +854,83 @@ public class JavaUtil {
 		sub.clear();
 	}
 	
-	public static boolean ArrayhasEqualString(String[] list, String strhead) 
+	public static int lastChar(String str, char character) 
 	{
-		for(int i=0;i<list.length;i++)
+		for(int i = str.length(); i > 0; i--)
 		{
-			String s = list[i];
-			if(s == null)
-				continue;//Static arrays are known for nulls
-			if(strhead.equals(s))
-				return true;
-		}
-		return false;
-	}
-	public static int findLastChar(String str, char character) 
-	{
-		for(int i=str.length()-1;i>0;i--)
-		{
-			if(str.substring(i, i+1).equals("" + character))
-				return i;
+			if(str.substring(i - 1, i).equals("" + character))
+				return i - 1;
 		}
 		return -1;
 	}
-	public static int findLastChar(String str, String charSequence) 
-	{
-		for(int i=str.length()-1;i>0;i--)
-		{
-			if(charSequence.contains(str.substring(i, i+1)))
-				return i;
-		}
-		return -1;
-	}
-	public static String[] splitStringAtIndex(int index,String tosplit) 
+	
+	/**
+	 * String[1] will be empty if there is no more string after the specified index
+	 */
+	public static String[] splitAtIndex(String str, int index) 
 	{
 		String[] list = new String[2];
-		String first = "";
-		String second = "";
-		for(int i=0;i<tosplit.length();i++)
-		{
-			if(i < index)
-				first += tosplit.substring(i, i+1);
-			if(i > index)
-				second += tosplit.substring(i, i+1);
-		}
-		list[0] = first;
-		list[1] = second;
+		list[0] = str.substring(0, index);
+		int index2 = index + 1;
+		list[1] = index2 < str.length() ? str.substring(index2, str.length()) : "";
 		return list;
 	}
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static ArrayList copyArrays(List li) 
+	
+	public static String reverse(String s) 
 	{
-		ArrayList list = new ArrayList();
-		for(Object object : li)
-			list.add(object);
-		return list;
-	}
-	public static String reverseString(String s) 
-	{
-		String str = "";
-		for(int i=s.length()-1;i>=0;i--)
-			str += s.substring(i, i+1);
-		return str;
-	}
-	@SuppressWarnings("rawtypes")
-	public static boolean hasKeys(Map list, Map list2)
-	{
-		for(int i=0;i<list.size();i++)
+		StringBuilder builder = new StringBuilder();
+		for(int i = s.length() - 1; i >= 0 ;i--)
 		{
-			Object obj = list.get(i);
-			if(!list2.containsKey(obj))
-				return false;
+			builder.append(s.substring(i, i+1));
 		}
-		return true;
+		return builder.toString();
 	}
-	@SuppressWarnings("rawtypes")
-	public static boolean hasKeys(List list, List list2)
+	
+	public static <T extends Comparable> void reverse(List<T> org)
 	{
-		for(int i=0;i<list.size();i++)
-		{
-			Object obj = list.get(i);
-			if(!list2.contains(obj))
-				return false;
-		}
-		return true;
+		Collections.reverse(org);
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public static void reverseArray(ArrayList origin) {
-		ArrayList list = new ArrayList();
-		for(int i=origin.size()-1;i>=0;i--)
-			list.add(origin.get(i));
-		origin.clear();
-		for(Object obj : list)
-			origin.add(obj);
+	//TODO:
+	public static void reverse(Map<?, ?> map) 
+	{
+		
 	}
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public static void reverseHashMap(HashMap<Integer, ArrayList> list) {
-		HashMap<Integer,ArrayList> map = new HashMap();
-		//sort ints
-		ArrayList<Integer> ints = new ArrayList();
-		for(Integer i : list.keySet() )
-			ints.add(i);
-		Collections.sort(ints,Collections.reverseOrder());
-		for(Integer i : ints)
-			map.put(i,list.get(i));
-		list.clear();
-		list.putAll(map);
-	}
+	
 	/**
 	 * Use for hashmaps for keys that override the .equals method this compares memory location
 	 */
-	@SuppressWarnings("rawtypes")
-	public static boolean containsMemoryLocKey(HashMap map,Object obj) {
+	public static boolean containsMemoryKey(Map map, Object obj) 
+	{
 		Iterator it = map.keySet().iterator();
 		while(it.hasNext())
 		{
-			Object obj2 = it.next();
-			if(obj == obj2)
+			Object o = it.next();
+			if(obj == o)
+			{
 				return true;
+			}
 		}
 		return false;
 	}
-
-	@SuppressWarnings("rawtypes")
-	public static void removeKeyMemoryLoc(Map map, Object key) {
-		Iterator it = map.keySet().iterator();
+	
+	public static boolean containsMemoryValue(Map map, Object obj) 
+	{
+		Iterator it = map.values().iterator();
 		while(it.hasNext())
 		{
-			Object obj2 = it.next();
-			if(key == obj2)
-				it.remove();
+			Object o = it.next();
+			if(obj == o)
+			{
+				return true;
+			}
 		}
-	}
-	@SuppressWarnings("rawtypes")
-	public static Object getMemoryLocKey(Map map, Object value) {
-		Iterator it = map.entrySet().iterator();
-		while(it.hasNext())
-		{
-			Map.Entry entry = (Map.Entry) it.next();
-			if(entry.getValue() == value)
-				return entry.getKey();
-		}
-		return null;
-	}
-
-	public static char toUpperCaseChar(char c) {
-		return ("" + c).toUpperCase().charAt(0);
-	}
-	public static String getIntsAsString(int[] ints) {
-		String str = "";
-		for(int i : ints)
-			str += "" + i + ",";
-		return str.substring(0, str.length()-1);
-	}
-	
-	public static List asList(Object[] objs)
-	{
-		List li = new ArrayList();
-		for(Object obj : objs)
-			li.add(obj);
-		return li;
-	}
-	public static List asList(Set set) {
-		List list = new ArrayList();
-		for(Object obj : set)
-			list.add(obj);
-		return list;
-	}
-	/**
-	 * returns name from first index till it disovers a dot
-	 * @param file
-	 * @return
-	 */
-	public static String getFileTrueDisplayName(File file) {
-		return file.getName().split("\\.")[0];
-	}
-	public static <T extends Object> ArrayList<T> asArray(Object... staticArr) {
-		ArrayList<T> list = new ArrayList();
-		for(int i=0;i<staticArr.length;i++)
-			list.add((T) staticArr[i]);
-		return list;
-	}
-	
-	public static boolean isStringNullOrEmpty(String string) 
-	{
-		if(string == null || string.isEmpty())
-			return true;
 		return false;
+	}
+	
+	public static boolean isNullorEmpty(String str) 
+	{
+		return str == null || str.isEmpty();
 	}
 	
 	/**
