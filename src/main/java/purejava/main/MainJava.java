@@ -15,7 +15,7 @@ public class MainJava {
 	public static void main(String[] args) throws FileNotFoundException, IOException
 	{
 		cleanDir(new File("./eclipse"));
-		System.out.println("\"" + JavaUtil.trim(".....   ....this is just a test.txt...   .....   ", ". ") + "\"");
+		System.out.println("\"" + JavaUtil.trim("", ". $") + "\"");
 		if(true)
 		{
 			return;

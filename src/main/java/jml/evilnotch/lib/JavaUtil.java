@@ -744,17 +744,39 @@ public class JavaUtil {
 				}
 			}
 		}
-		String invalid = ". ";
-		str = trimEnd(str, invalid);
+		str = trimEnd(str, ". ");
 		return str;
 	}
 	
 	/**
-	 * removes invalid endings from a string
+	 * trim invalid endings from a string
 	 */
 	public static String trimEnd(String str, String invalid) 
 	{
-		int index = -1;
+		int index = trimEndIndex(str, invalid);
+		return str.substring(0, index);
+	}
+	
+	/**
+	 * trim invalid startings from a string
+	 */
+	public static String trimStart(String str, String invalid) 
+	{
+		int index = trimStartIndex(str, invalid);
+		return str.substring(index, str.length());
+	}
+	
+	/**
+	 * trim invalid endings and invalid startings froma a string
+	 */
+	public static String trim(String str, String invalid)
+	{
+		return str.substring(trimStartIndex(str, invalid), trimEndIndex(str, invalid));
+	}
+	
+	public static int trimEndIndex(String str, String invalid) 
+	{
+		int index = 0;
 		for(int i = str.length(); i > 0; i--)
 		{
 			String s = str.substring(i - 1, i);
@@ -764,12 +786,12 @@ public class JavaUtil {
 				break;
 			}
 		}
-		return index != -1 ? str.substring(0, index) : "";
+		return index;
 	}
 	
-	public static String trimStart(String str, String invalid) 
+	public static int trimStartIndex(String str, String invalid) 
 	{
-		int index = -1;
+		int index = 0;
 		for(int i = 0; i < str.length(); i++)
 		{
 			String s = str.substring(i, i + 1);
@@ -779,15 +801,7 @@ public class JavaUtil {
 				break;
 			}
 		}
-		return index != -1 ? str.substring(index, str.length()) : "";
-	}
-	
-	//TODO:
-	public static String trim(String str, String invalid)
-	{
-		str = trimStart(str, invalid);
-		str = trimEnd(str, invalid);
-		return str;
+		return index;
 	}
 	
 	/**
