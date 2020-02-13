@@ -856,10 +856,10 @@ public class JavaUtil {
 	
 	public static int lastChar(String str, char character) 
 	{
-		for(int i = str.length(); i > 0; i--)
+		for(int i = str.length() - 1; i >= 0; i--)
 		{
-			if(str.substring(i - 1, i).equals("" + character))
-				return i - 1;
+			if(str.substring(i, i + 1).equals("" + character))
+				return i;
 		}
 		return -1;
 	}
@@ -879,9 +879,9 @@ public class JavaUtil {
 	public static String reverse(String s) 
 	{
 		StringBuilder builder = new StringBuilder();
-		for(int i = s.length() - 1; i >= 0 ;i--)
+		for(int i = s.length() - 1; i >= 0 ; i--)
 		{
-			builder.append(s.substring(i, i+1));
+			builder.append(s.substring(i, i + 1));
 		}
 		return builder.toString();
 	}
@@ -895,6 +895,24 @@ public class JavaUtil {
 	public static void reverse(Map<?, ?> map) 
 	{
 		
+	}
+	
+	public static void reverOrder(List<?> list)
+	{
+		Collections.sort(list, Collections.reverseOrder());
+	}
+	
+	//TODO:
+	public static void reverseOrder(Map org)
+	{
+		SortedMap map = sort(org, Collections.reverseOrder());
+		org.clear();
+		Iterator<Map.Entry> it = map.entrySet().iterator();
+		while(it.hasNext())
+		{
+			Map.Entry entry = it.next();
+			org.put(entry.getKey(), entry.getValue());
+		}
 	}
 	
 	/**

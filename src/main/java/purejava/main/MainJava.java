@@ -1,25 +1,22 @@
 package purejava.main;
 
-import java.awt.Color;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import jml.evilnotch.lib.JavaUtil;
-import scala.actors.threadpool.Arrays;
 
 public class MainJava {
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException
 	{
 		cleanDir(new File("./eclipse"));
-		List<Integer> list = JavaUtil.toArray(0, 1, 2, 3 , 4, 5, 6, 7, 8, 9, -1);
-		System.out.println(list);
-		JavaUtil.reverse(list);
-		System.out.println(list);
+		Map map = new HashMap();
+		map.put("a", 1);
+		map.put("b", -1);
+		System.out.println(JavaUtil.sortByValues(map));
 		if(true)
 		{
 			return;
