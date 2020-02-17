@@ -49,14 +49,14 @@ public class ReflectEnum {
 		}
 	}
 	
-	public static Enum getEnum(Class<? extends Enum> clazz, String name)
+	public static <T extends Enum> T getEnum(Class<? extends Enum> clazz, String name)
     {
     	try
     	{
     		for(Enum e : clazz.getEnumConstants())
     		{
     			if(e.name().equals(name))
-    				return e;
+    				return (T) e;
     		}
     	}
     	catch(Throwable t)
@@ -69,11 +69,11 @@ public class ReflectEnum {
 	/**
 	 * get an enum based on it's ordinal(index)
 	 */
-	public static Enum getEnum(Class<? extends Enum> clazz, int ordinal)
+	public static <T extends Enum> T getEnum(Class<? extends Enum> clazz, int ordinal)
     {
     	try
     	{
-    		return clazz.getEnumConstants()[ordinal];
+    		return (T) clazz.getEnumConstants()[ordinal];
     	}
     	catch(ArrayIndexOutOfBoundsException e)
     	{
@@ -95,7 +95,6 @@ public class ReflectEnum {
      * internal do not use please
      * enum constructors are String.class, int.class plus and whatever is in your enum constructor
      */
-    @Deprecated
     public static Constructor getEnumConstructor(Class<? extends Enum> clazz, Class... params)
     {
         Class<?>[] corrected = new Class[params.length + 2];
@@ -123,7 +122,7 @@ public class ReflectEnum {
     /**
      * create an enum without adding it to memory
      */
-    public static Enum createEnum(Class<? extends Enum> clazz, String enumName, Object... params)
+    public static <T extends Enum> T createEnum(Class<? extends Enum> clazz, String enumName, Object... params)
     {
     	try
     	{
@@ -138,7 +137,7 @@ public class ReflectEnum {
     		
     		Object accessor = getCtrAccessor(ctr);
     		Enum e = (Enum)ctrNewInstance.invoke(accessor, new Object[]{corrected});
-    		return clazz.cast(e);
+    		return (T) clazz.cast(e);
     	}
     	catch(Throwable t)
     	{
@@ -150,11 +149,11 @@ public class ReflectEnum {
     /**
      * add a synthetic enums into memory
      */
-	public static void addEnum(Enum... enums)
+	public static <T extends Enum> void addEnum(T... enums)
     {
     	try
     	{
-			Class<? extends Enum> clazz = (Class<? extends Enum>) enums[0].getClass();
+			Class<? extends Enum> clazz = ReflectionHandler.getArrayClass(enums);
     		sanityEnumCheck(enums);
     		Field fieldValues = getEnumHolder(clazz);
     		
@@ -194,7 +193,7 @@ public class ReflectEnum {
 	
 	private static Field getEnumHolder(Class<? extends Enum> clazz)
 	{
-		Field fieldValues = ReflectionHandler.findField(clazz, "$VALUES", "ENUM$VALUES");
+		Field fieldValues = ReflectionHandler.getField(clazz, "$VALUES", "ENUM$VALUES");
 		if(fieldValues == null)
 		{
 	        int flags = (ObfHelper.isDeob ? Modifier.PUBLIC : Modifier.PRIVATE) | Modifier.STATIC | Modifier.FINAL | 0x1000 /*SYNTHETIC*/;
@@ -236,7 +235,7 @@ public class ReflectEnum {
 	private static Class[] getParams(Object[] params) 
     {
     	Class[] c = new Class[params.length];
-    	for(int i=0;i<params.length;i++)
+    	for(int i = 0; i < params.length; i++)
     		c[i] = params[i].getClass();
 		return c;
 	}

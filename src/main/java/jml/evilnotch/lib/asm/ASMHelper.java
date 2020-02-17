@@ -621,7 +621,7 @@ public class ASMHelper
 		return null;
 	}
 	
-	public static AbstractInsnNode getNextLabel(AbstractInsnNode ab) 
+	public static AbstractInsnNode nextLabel(AbstractInsnNode ab) 
 	{
 		while(ab != null)
 		{
@@ -632,7 +632,7 @@ public class ASMHelper
 		return null;
 	}
 	
-	public static AbstractInsnNode previousLineNumber(AbstractInsnNode ab) 
+	public static AbstractInsnNode previousLabel(AbstractInsnNode ab) 
 	{
 		while(ab != null)
 		{
@@ -656,17 +656,17 @@ public class ASMHelper
 	}
 	
 	/**
-	 * delete a whole line instructions sectioned between two line number nodes
+	 * delete a whole line instructions sectioned between two label nodes
 	 * will not delete FrameNodes for binary compatibility for adding more lines later
 	 * ONLY SUPPORTS NORMAL LINES no for loops, if statements etc...
 	 */
 	public static void removeLine(MethodNode method, AbstractInsnNode start)
 	{
 		if(!(start instanceof LineNumberNode))
-			start = ASMHelper.previousLineNumber(start).getNext();
+			start = ASMHelper.previousLabel(start).getNext();
 		if(start instanceof FrameNode)
 			start = start.getNext();
-		AbstractInsnNode end = ASMHelper.getNextLabel(start).getPrevious();//previous is label and the one before the label is the end
+		AbstractInsnNode end = ASMHelper.nextLabel(start).getPrevious();//previous is label and the one before the label is the end
 		ASMHelper.removeInsn(method, start, end);
 	}
 	

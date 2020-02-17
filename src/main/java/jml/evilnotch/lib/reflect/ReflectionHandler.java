@@ -7,7 +7,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.apache.commons.lang3.ClassUtils;
 
@@ -30,6 +32,7 @@ public class ReflectionHandler {
 			t.printStackTrace();
 		}
 	}
+	public static Field elementData = ReflectionHandler.getField(ArrayList.class, "elementData");
 	
     public static Field getField(Class clazz, MCPSidedString mcp)
     {
@@ -39,44 +42,27 @@ public class ReflectionHandler {
 	/**
 	 * makes the field public and strips the final modifier
 	 */
-    public static Field getField(Class clazz, String name)
-    {
-        try
-        {
-        	return grabField(clazz, name);
-        }
-        catch(Throwable t)
-        {
-            t.printStackTrace();
-        }
-        return null;
-    }
-    
-    private static Field grabField(Class clazz, String name) throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException, SecurityException 
-    {
-    	Field field = clazz.getDeclaredField(name);
-		field.setAccessible(true);
-		modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
-		return field;
-	}
-    
-    /**
-     * use if you have multiple possible fields doesn't output errors
-     */
-    public static Field findField(Class clazz, String... names)
+    public static Field getField(Class clazz, String... names)
     {
     	for(String name : names)
     	{
     		try
     		{
-    			return grabField(clazz, name);
+    	    	Field field = clazz.getDeclaredField(name);
+    			field.setAccessible(true);
+    			modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+    			return field;
     		}
-    		catch(Throwable t)
+    		catch(NoSuchFieldException e)
     		{
     			
     		}
+    		catch(Throwable t)
+    		{
+    			t.printStackTrace();
+    		}
     	}
-    	return null;
+        return null;
     }
 
 	public static Method getMethod(Class clazz, MCPSidedString mcp)
@@ -92,6 +78,10 @@ public class ReflectionHandler {
             method.setAccessible(true);
             return method;
         }
+        catch(NoSuchMethodException e)
+        {
+        	
+        }
         catch(Throwable t)
         {
             t.printStackTrace();
@@ -99,16 +89,16 @@ public class ReflectionHandler {
         return null;
     }
     
-    public static Object getStatic(Field field)
+    public static <T> T getStatic(Field field)
     {
     	return get(field, null);
     }
     
-    public static Object get(Field field, Object instance)
+    public static <T> T get(Field field, Object instance)
     {
-    	try 
+    	try
     	{
-			return field.get(instance);
+			return (T) field.get(instance);
 		} 
     	catch (Throwable t)
     	{
@@ -131,169 +121,25 @@ public class ReflectionHandler {
     	catch (Throwable t)
     	{
 			t.printStackTrace();
-		} 
+		}
     }
     
-    public static Object invokeStatic(Method method, Object... params)
+    public static <T> T invokeStatic(Method method, Object... params)
     {
     	return invoke(method, null, params);
     }
     
-    public static Object invoke(Method method, Object instance, Object... params)
+    public static <T> T invoke(Method method, Object instance, Object... params)
     {
     	try
     	{
-    		return method.invoke(instance, params);
+    		return (T) method.invoke(instance, params);
     	}
     	catch(Throwable t)
     	{
     		t.printStackTrace();
     	}
     	return null;
-    }
-
-    //fields
-	public static Boolean getBoolean(Field field, Object instance) 
-	{
-		return (Boolean) get(field, instance);
-	}
-	
-	public static Byte getByte(Field field, Object instance)
-	{
-		return (Byte) get(field, instance);
-	}
-	
-	public static Short getShort(Field field, Object instance)
-	{
-		return (Short) get(field, instance);
-	}
-	
-	public static Integer getInt(Field field, Object instance)
-	{
-		return (Integer) get(field, instance);
-	}
-	
-	public static Long getLong(Field field, Object instance)
-	{
-		return (Long) get(field, instance);
-	}
-	
-	public static Float getFloat(Field field, Object instance)
-	{
-		return (Float) get(field, instance);
-	}
-	
-	public static Double getDouble(Field field, Object instance)
-	{
-		return (Double) get(field, instance);
-	}
-	
-	//static fields
-	public static Boolean getStaticBoolean(Field field) 
-	{
-		return (Boolean) getStatic(field);
-	}
-	
-	public static Byte getStaticByte(Field field)
-	{
-		return (Byte) getStatic(field);
-	}
-	
-	public static Short getStaticShort(Field field)
-	{
-		return (Short) getStatic(field);
-	}
-	
-	public static Integer getStaticInt(Field field)
-	{
-		return (Integer) getStatic(field);
-	}
-	
-	public static Long getStaticLong(Field field)
-	{
-		return (Long) getStatic(field);
-	}
-	
-	public static Float getStaticFloat(Field field)
-	{
-		return (Float) getStatic(field);
-	}
-	
-	public static Double getStaticDouble(Field field)
-	{
-		return (Double) getStatic(field);
-	}
-	
-	//method
-    public static Boolean invokeBoolean(Method method, Object instance, Object... params)
-    {
-    	return (Boolean) invoke(method, instance, params);
-    }
-    
-    public static Byte invokeByte(Method method, Object instance, Object... params)
-    {
-    	return (Byte) invoke(method, instance, params);
-    }
-    
-    public static Short invokeShort(Method method, Object instance, Object... params)
-    {
-    	return (Short) invoke(method, instance, params);
-    }
-    
-    public static Integer invokeInt(Method method, Object instance, Object... params)
-    {
-    	return (Integer) invoke(method, instance, params);
-    }
-    
-    public static Long invokeLong(Method method, Object instance, Object... params)
-    {
-    	return (Long) invoke(method, instance, params);
-    }
-    
-    public static Float invokeFloat(Method method, Object instance, Object... params)
-    {
-    	return (Float) invoke(method, instance, params);
-    }
-    
-    public static Double invokeDouble(Method method, Object instance, Object... params)
-    {
-    	return (Double) invoke(method, instance, params);
-    }
-    
-    //method static
-    public static Boolean invokeStaticBoolean(Method method, Object... params)
-    {
-    	return (Boolean) invokeStatic(method, params);
-    }
-    
-    public static Byte invokeStaticByte(Method method, Object... params)
-    {
-    	return (Byte) invokeStatic(method, params);
-    }
-    
-    public static Short invokeStaticShort(Method method, Object... params)
-    {
-    	return (Short) invokeStatic(method, params);
-    }
-    
-    public static Integer invokeStaticInt(Method method, Object... params)
-    {
-    	return (Integer) invokeStatic(method, params);
-    }
-    
-    public static Long invokeStaticLong(Method method, Object... params)
-    {
-    	return (Long) invokeStatic(method, params);
-    }
-    
-    public static Float invokeStaticFloat(Method method, Object... params)
-    {
-    	return (Float) invokeStatic(method, params);
-    }
-    
-    public static Double invokeStaticDouble(Method method, Object... params)
-    {
-    	return (Double) invokeStatic(method, params);
     }
     
     public static Constructor getConstructor(Class clazz, Class... params)
@@ -303,6 +149,10 @@ public class ReflectionHandler {
     		Constructor ctr =  clazz.getDeclaredConstructor(params);
     		ctr.setAccessible(true);
     		return ctr;
+    	}
+    	catch(NoSuchMethodException e)
+    	{
+    		
     	}
     	catch(Throwable t)
     	{
@@ -334,11 +184,15 @@ public class ReflectionHandler {
     	return null;
     }
     
-    public static Class getClass(String className)
+    public static <T> Class<T> getClass(String className)
     {
     	try
     	{
-    		return Class.forName(className);
+    		return (Class<T>) Class.forName(className);
+    	}
+    	catch(ClassNotFoundException e)
+    	{
+    		
     	}
     	catch(Throwable t)
     	{
@@ -348,28 +202,37 @@ public class ReflectionHandler {
     }
     
     
-    public static Class getClass(String name, boolean clinit, ClassLoader loader)
+    public static <T> Class<T> getClass(String name, boolean clinit, ClassLoader loader)
     {
     	try
     	{
-    		return Class.forName(name, clinit, loader);
+    		return (Class<T>) Class.forName(name, clinit, loader);
+    	}
+    	catch(ClassNotFoundException e)
+    	{
+    		
     	}
     	catch(Throwable t)
     	{
     		t.printStackTrace();
     	}
     	return null;
-    } 
+    }
     
-    public static Class getArraySourceClass(Class clazz)
+    public static <T> Class<T> getArrayClass(T[] arr)
+    {
+    	return getArrayClass((Class<T>) arr.getClass());
+    }
+    
+    public static <T> Class<T> getArrayClass(Class<T> clazz)
     {
     	Validate.isTrue(clazz.isArray());
-    	return clazz.getComponentType();
+    	return (Class<T>) clazz.getComponentType();
     }
     
-    public static Object cast(Class clazz, Object tocast)
+    public static <T> T cast(Class<T> clazz, Object tocast)
     {
-    	return clazz.cast(tocast);
+    	return (T) clazz.cast(tocast);
     }
     
     public static ClassLoader getClassLoader(Class clazz)
@@ -387,11 +250,11 @@ public class ReflectionHandler {
     	return base.isInstance(obj);
     }
     
-    public static Object newInstance(Class clazz)
+    public static <T> T newInstance(Class<T> clazz)
     {
     	try
     	{
-    		return clazz.newInstance();
+    		return (T) clazz.newInstance();
     	}
     	catch(Throwable t)
     	{
@@ -400,11 +263,11 @@ public class ReflectionHandler {
     	return null;
     }
     
-    public static Annotation getClassAnnotation(Class clazz, Class<? extends Annotation> annot)
+    public static <T extends Annotation> T getAnnotation(Class clazz, Class<T> annot)
     {
     	try
     	{
-    		return clazz.getDeclaredAnnotation(annot);
+    		return (T) clazz.getDeclaredAnnotation(annot);
     	}
     	catch(Throwable t)
     	{
@@ -413,19 +276,17 @@ public class ReflectionHandler {
     	return null;
     }
     
-    public static Class getAnnotationClass(Annotation an)
+    public static Class<? extends Annotation> getAnnotationClass(Annotation an)
     {
     	return an.annotationType();
     }
     
-    public static boolean containsInterface(Class clazz, Class intf)
+    public static boolean instanceOfInterface(Class clazz, Class intf)
     {
     	try
     	{
     		Validate.isTrue(intf.isInterface());
-    		if(clazz.isInterface())
-    			return instanceOf(intf, clazz);
-    		for(Class c : ClassUtils.getAllInterfaces(clazz))
+    		for(Class c : getInterfaces(clazz))
     		{
     			if(instanceOf(intf, c))
     				return true;
@@ -438,23 +299,31 @@ public class ReflectionHandler {
     	return false;
     }
     
+    public static List<Class<?>> getInterfaces(Class clazz)
+    {
+    	List<Class<?>> clazzes = ClassUtils.getAllInterfaces(clazz);
+    	if(clazz.isInterface() && !clazzes.contains(clazz))
+    		clazzes.add(clazz);//check to make sure the library didn't update and fix this bug
+    	return clazzes;
+    }
+    
     /**
      * like forges but, can be applied to any enum
      */
-    public static Enum addEnum(Class<? extends Enum> clazz, String name, Object... params)
+    public static <T extends Enum> T addEnum(Class<? extends Enum> clazz, String name, Object... params)
     {
     	Enum e = ReflectEnum.createEnum(clazz, name, params);
     	ReflectEnum.addEnum(e);
-    	return e;
+    	return (T) e;
     }
     
     /**
      * create an enum without instantiating it into class enum arrays
      */
-    public static Enum newEnum(Class<? extends Enum> clazz, String name, Object... params)
+    public static <T extends Enum> T newEnum(Class<? extends Enum> clazz, String name, Object... params)
     {
     	Enum e = ReflectEnum.createEnum(clazz, name, params);
-    	return e;
+    	return (T) e;
     }
     
     public static void addEnum(Enum... enums)
@@ -467,14 +336,19 @@ public class ReflectionHandler {
     	return ReflectEnum.containsEnum(clazz, name);
     }
     
-    public static Enum getEnum(Class<? extends Enum> clazz, String name)
+    public static <T extends Enum> T getEnum(Class<? extends Enum> clazz, String name)
     {
-    	return ReflectEnum.getEnum(clazz, name);
+    	return (T) ReflectEnum.getEnum(clazz, name);
     }
     
     public static <T> T[] newArray(Class<T> clazz, int size)
     {
     	return (T[]) Array.newInstance(clazz, size);
+    }
+    
+    public static <T> int capacity(ArrayList<T> list)
+    {
+       return ((T[]) ReflectionHandler.get(elementData, list)).length;
     }
     
 	/**

@@ -8,7 +8,7 @@ import jml.evilnotch.lib.reflect.ReflectionHandler;
 
 public class ObfHelper
 {
-	public static final boolean isDeob = ReflectionHandler.getBoolean(ReflectionHandler.getField(CoreModManager.class, "deobfuscatedEnvironment"), null);
+	public static final boolean isDeob = ReflectionHandler.get(ReflectionHandler.getField(CoreModManager.class, "deobfuscatedEnvironment"), null);
 	public static final boolean isObf = !isDeob;
 
 	/**

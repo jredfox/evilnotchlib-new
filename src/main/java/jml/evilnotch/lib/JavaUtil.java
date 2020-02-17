@@ -944,7 +944,7 @@ public class JavaUtil {
 		return builder.toString();
 	}
 	
-	public static <T extends Comparable> void reverse(List<T> org)
+	public static void reverse(List org)
 	{
 		Collections.reverse(org);
 	}
@@ -1007,6 +1007,11 @@ public class JavaUtil {
 	public static boolean isNullorEmpty(String str) 
 	{
 		return str == null || str.isEmpty();
+	}
+	
+	public static File getParentFile(File f)
+	{
+		return f.getAbsoluteFile().getParentFile();
 	}
 	
 	/**
