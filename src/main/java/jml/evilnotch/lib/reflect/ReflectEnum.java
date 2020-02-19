@@ -153,7 +153,7 @@ public class ReflectEnum {
     {
     	try
     	{
-			Class<? extends Enum> clazz = ReflectionHandler.getArrayClass(enums);
+			Class<? extends Enum> clazz = enums[0].getClass();
     		sanityEnumCheck(enums);
     		Field fieldValues = getEnumHolder(clazz);
     		

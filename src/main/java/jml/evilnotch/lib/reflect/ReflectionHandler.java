@@ -308,7 +308,7 @@ public class ReflectionHandler {
     }
     
     /**
-     * like forges but, can be applied to any enum
+     * Wouldn't recommend using this directly use newEnum instead. Then later instantiate them into class enum memory
      */
     public static <T extends Enum> T addEnum(Class<? extends Enum> clazz, String name, Object... params)
     {
@@ -326,7 +326,7 @@ public class ReflectionHandler {
     	return (T) e;
     }
     
-    public static void addEnum(Enum... enums)
+    public static <T extends Enum> void addEnum(T... enums)
     {
     	ReflectEnum.addEnum(enums);
     }

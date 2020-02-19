@@ -37,8 +37,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.Set;
-import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.apache.commons.io.FileUtils;
@@ -48,6 +48,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 
+import jml.evilnotch.lib.array.SortedList;
+import jml.evilnotch.lib.array.SortedMap;
+import jml.evilnotch.lib.array.SortedSet;
+import jml.evilnotch.lib.asm.ASMHelper;
 import jml.evilnotch.lib.json.JSONObject;
 import jml.evilnotch.lib.json.serialize.JSONSerializer;
 import jml.evilnotch.lib.primitive.ByteObj;
@@ -62,7 +66,16 @@ import net.minecraft.util.ResourceLocation;
 public class JavaUtil {
 	public static final String SPECIALCHARS = "~!@#$%^&*()_+`'-=/,.<>?\"{}[]:;|" + "\\";
 	public static final String numberIds = "bsilfd";
-	public static final int arrayInitCapacity = 10;
+	public static final int initCapacity = 10;
+	public static final Comparator assending = new Comparator()
+	{
+		@Override
+		public int compare(Object o1, Object o2) 
+		{
+			return ((Comparable)o1).compareTo((Comparable)o2);
+		}
+	};
+	public static final Comparator descending = Collections.reverseOrder();
 	public static final int fileCharLimit = 200;//since math path is 260 we want to be realitivly safe here
 	public static final float FLOAT_MIN = Float.MAX_VALUE * -1;
 	public static final float FLOAT_MAX = Float.MAX_VALUE;
@@ -471,6 +484,17 @@ public class JavaUtil {
 		return files;
 	}
 	
+	/**
+	 * deletes a file or folder(and if it's a folder it will delete all files inside of it as well)
+	 */
+	public static void delete(File f)
+	{
+		if(f.isDirectory())
+			deleteDir(f);
+		else
+			f.delete();
+	}
+	
 	public static void deleteDir(File dir)
 	{
 		if(!dir.isDirectory())
@@ -699,7 +723,7 @@ public class JavaUtil {
 	
 	public static <T> List<T> toArray(T... arr)
 	{
-		List<T> list = new ArrayList(arr.length + arrayInitCapacity);
+		List<T> list = new ArrayList(arr.length + initCapacity);
 		for(T obj : arr)
 			list.add(obj);
 		return list;
@@ -713,54 +737,101 @@ public class JavaUtil {
 		return arr;
 	}
 	
-	public static <K, V> SortedMap<K, V> sortByKeys(Map<K, V> map)
+	public static void sort(List list)
 	{
-		return new TreeMap<K, V>(map);
+		Collections.sort(list);
 	}
 	
-	public static <K, V> SortedMap<K, V> sort(Map<K, V> map, Comparator c)
+	public static void sort(List list, Comparator c) 
 	{
-		TreeMap<K, V> ordered = new TreeMap<K, V>(c);
-		ordered.putAll(map);
-		return ordered;
+		Collections.sort(list, c);
 	}
 	
-	public static <K, V> SortedMap<K, V> sortByValues(Map<K, V> map) 
+	public static void sortReverse(List list)
 	{
-		SortedMap m = sort(map, new Comparator<Map.Entry>()
-		{
-			@Override
-			public int compare(Map.Entry e1, Map.Entry e2) 
-			{
-				return ((Comparable)e1.getValue()).compareTo((Comparable)e2.getValue());
-			}
-		});
-		return m;
+		sort(list, Collections.reverseOrder());
+	}
+	
+	public static <K, V> Map<K, V> sortReverse(Map<K, V> map)
+	{
+		return sort(map, SortedMap.keys_reverse);
+	}
+	
+	public static void reverse(List list)
+	{
+		Collections.reverse(list);
+	}
+	
+	public static void shuffle(List list) 
+	{
+		shuffle(list, 1);
+	}
+	
+	public static void shuffle(List list, int times) 
+	{
+		for(int i = 0; i < times; i++)
+			Collections.shuffle(list);
+	}
+	
+	public static void shuffle(List list, Random rnd) 
+	{
+		shuffle(list, 1, rnd);
+	}
+
+	public static void shuffle(List list, int times, Random rnd) 
+	{
+		for(int i = 0; i < times; i++)
+			Collections.shuffle(list, rnd);
+	}
+	
+	public static <K, V> Map<K, V> sortByKeys(Map<K, V> map)
+	{
+		return sort(map, SortedMap.keys);
+	}
+	
+	/**
+	 * returns a sorted map and will retain order after sorting it
+	 */
+	public static <K, V> Map<K, V> sort(Map<K, V> map, Comparator c)
+	{
+		if(ASMHelper.isTrue())
+			throw new RuntimeException("not supported yet");
+		return new SortedMap(map, c);
+	}
+	
+	public static <K, V> void shuffle(Map<K, V> map, int times)
+	{
+		List<Map.Entry<K, V>> list = new ArrayList(map.entrySet());
+		shuffle(list, times);
+	}
+	
+	public static <K, V> void shuffle(Map<K, V> map, int times, Random rnd)
+	{
+		List<Map.Entry<K, V>> list = new ArrayList(map.entrySet());
+		shuffle(list, times, rnd);
+	}
+	
+	public static <K, V> Map<K, V> sortByValues(Map<K, V> map) 
+	{
+		return sort(map, SortedMap.values);
 	}
 	
 	/**
 	 * returns a SortedMap based on keySets
 	 */
-	public static <K, V> SortedMap<K, V> newSortedMap()
+	public static <K, V> Map<K, V> newSortedMap(Comparator c)
 	{
-		return newSortedMap(false);
+		return new SortedMap<K, V>(c);
 	}
 	
-	/**
-	 * create a SortedMap with sortByKeys or sortByValues
-	 */
-	public static <K, V> SortedMap<K, V> newSortedMap(boolean sortByValues)
+	public static <T> List<T> newSortedList(Comparator c)
 	{
-		return sortByValues ? 
-		new TreeMap(new Comparator<Map.Entry>()
-		{
-			@Override
-			public int compare(Map.Entry e1, Map.Entry e2) 
-			{
-				return ((Comparable)e1.getValue()).compareTo((Comparable)e2.getValue());
-			}
-		}) 
-		: new TreeMap();
+		return new SortedList<T>(c);
+	}
+	
+	public static <T> Set newSortedSet(Comparator c)
+	{
+		return new SortedSet<T>(c);
 	}
 	
 	/**
@@ -943,11 +1014,6 @@ public class JavaUtil {
 		}
 		return builder.toString();
 	}
-	
-	public static void reverse(List org)
-	{
-		Collections.reverse(org);
-	}
 
 	//TODO:
 	public static void reverse(Map<?, ?> map) 
@@ -963,7 +1029,7 @@ public class JavaUtil {
 	//TODO:
 	public static void reverseOrder(Map org)
 	{
-		SortedMap map = sort(org, Collections.reverseOrder());
+		Map map = sort(org, Collections.reverseOrder());
 		org.clear();
 		Iterator<Map.Entry> it = map.entrySet().iterator();
 		while(it.hasNext())
