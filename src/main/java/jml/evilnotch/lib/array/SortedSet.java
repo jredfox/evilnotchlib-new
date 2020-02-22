@@ -37,7 +37,7 @@ public class SortedSet<T> implements Set<T>{
 	 */
 	public void newChild() 
 	{
-		this.child = this.comparator == null ? new LinkedHashSet() : new TreeSet(this.comparator);
+		this.child = this.comparator == null ? new LinkedHashSet(this.size() + JavaUtil.initCapacity) : new TreeSet(this.comparator);
 	}
 
 	public Comparator getComparator()
@@ -47,8 +47,6 @@ public class SortedSet<T> implements Set<T>{
 	
 	public void setComparator(Comparator c)
 	{
-		if(this.comparator == c)
-			return;
 		this.comparator = c;
 		Set<T> set = new SortedSet(this, this.comparator);
 		this.clear();

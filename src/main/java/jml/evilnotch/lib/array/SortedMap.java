@@ -5,21 +5,24 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * a SortedMap which uses a compartor for insertion order. If the compartor is null default HashMap behavior
+ */
 public class SortedMap<K, V> implements Map<K, V>{
-	
-	public static final Comparator values = null;
-	public static final Comparator values_reverse = null;
-	public static final Comparator keys = null;
-	public static final Comparator keys_reverse = null;
 	
 	public SortedMap() 
 	{
-		this(null);
+		this((Comparator)null);
 	}
 	
 	public SortedMap(Comparator c) 
 	{
 		
+	}
+	
+	public SortedMap(Collection col, Comparator c) 
+	{
+		//TODO:
 	}
 
 	public SortedMap(Map<K, V> map, Comparator c) {

@@ -48,6 +48,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 
+import jml.evilnotch.lib.array.Comparators;
 import jml.evilnotch.lib.array.SortedList;
 import jml.evilnotch.lib.array.SortedMap;
 import jml.evilnotch.lib.array.SortedSet;
@@ -67,15 +68,6 @@ public class JavaUtil {
 	public static final String SPECIALCHARS = "~!@#$%^&*()_+`'-=/,.<>?\"{}[]:;|" + "\\";
 	public static final String numberIds = "bsilfd";
 	public static final int initCapacity = 10;
-	public static final Comparator assending = new Comparator()
-	{
-		@Override
-		public int compare(Object o1, Object o2) 
-		{
-			return ((Comparable)o1).compareTo((Comparable)o2);
-		}
-	};
-	public static final Comparator descending = Collections.reverseOrder();
 	public static final int fileCharLimit = 200;//since math path is 260 we want to be realitivly safe here
 	public static final float FLOAT_MIN = Float.MAX_VALUE * -1;
 	public static final float FLOAT_MAX = Float.MAX_VALUE;
@@ -737,31 +729,6 @@ public class JavaUtil {
 		return arr;
 	}
 	
-	public static void sort(List list)
-	{
-		Collections.sort(list);
-	}
-	
-	public static void sort(List list, Comparator c) 
-	{
-		Collections.sort(list, c);
-	}
-	
-	public static void sortReverse(List list)
-	{
-		sort(list, Collections.reverseOrder());
-	}
-	
-	public static <K, V> Map<K, V> sortReverse(Map<K, V> map)
-	{
-		return sort(map, SortedMap.keys_reverse);
-	}
-	
-	public static void reverse(List list)
-	{
-		Collections.reverse(list);
-	}
-	
 	public static void shuffle(List list) 
 	{
 		shuffle(list, 1);
@@ -784,9 +751,34 @@ public class JavaUtil {
 			Collections.shuffle(list, rnd);
 	}
 	
-	public static <K, V> Map<K, V> sortByKeys(Map<K, V> map)
+	public static <T> Set<T> shuffle(Set<T> set, int times)
 	{
-		return sort(map, SortedMap.keys);
+		List<T> list = new ArrayList(set);
+		shuffle(list, times);
+		return new SortedSet(list, null);
+	}
+	
+	public static <T> Set<T> shuffle(Set<T> set, int times, Random rnd)
+	{
+		List<T> list = new ArrayList(set);
+		shuffle(list, times, rnd);
+		return new SortedSet(list, null);
+	}
+	
+	public static <K, V> Map<K, V> shuffle(Map<K, V> map, int times)
+	{
+		List<Map.Entry<K, V>> list = new ArrayList(map.entrySet());
+		shuffle(list, times);
+		SortedMap newMap = new SortedMap(list, null);
+		return newMap;
+	}
+	
+	public static <K, V> Map<K, V> shuffle(Map<K, V> map, int times, Random rnd)
+	{
+		List<Map.Entry<K, V>> list = new ArrayList(map.entrySet());
+		shuffle(list, times, rnd);
+		SortedMap newMap = new SortedMap(list, null);
+		return newMap;
 	}
 	
 	/**
@@ -799,39 +791,14 @@ public class JavaUtil {
 		return new SortedMap(map, c);
 	}
 	
-	public static <K, V> void shuffle(Map<K, V> map, int times)
+	public static <K, V> Map<K, V> sortByKeys(Map<K, V> map)
 	{
-		List<Map.Entry<K, V>> list = new ArrayList(map.entrySet());
-		shuffle(list, times);
-	}
-	
-	public static <K, V> void shuffle(Map<K, V> map, int times, Random rnd)
-	{
-		List<Map.Entry<K, V>> list = new ArrayList(map.entrySet());
-		shuffle(list, times, rnd);
+		return sort(map, Comparators.keys);
 	}
 	
 	public static <K, V> Map<K, V> sortByValues(Map<K, V> map) 
 	{
-		return sort(map, SortedMap.values);
-	}
-	
-	/**
-	 * returns a SortedMap based on keySets
-	 */
-	public static <K, V> Map<K, V> newSortedMap(Comparator c)
-	{
-		return new SortedMap<K, V>(c);
-	}
-	
-	public static <T> List<T> newSortedList(Comparator c)
-	{
-		return new SortedList<T>(c);
-	}
-	
-	public static <T> Set newSortedSet(Comparator c)
-	{
-		return new SortedSet<T>(c);
+		return sort(map, Comparators.values);
 	}
 	
 	/**
@@ -1014,7 +981,12 @@ public class JavaUtil {
 		}
 		return builder.toString();
 	}
-
+	
+	public static void reverse(List list)
+	{
+		Collections.reverse(list);
+	}
+	
 	//TODO:
 	public static void reverse(Map<?, ?> map) 
 	{
@@ -1029,14 +1001,7 @@ public class JavaUtil {
 	//TODO:
 	public static void reverseOrder(Map org)
 	{
-		Map map = sort(org, Collections.reverseOrder());
-		org.clear();
-		Iterator<Map.Entry> it = map.entrySet().iterator();
-		while(it.hasNext())
-		{
-			Map.Entry entry = it.next();
-			org.put(entry.getKey(), entry.getValue());
-		}
+		
 	}
 	
 	/**
