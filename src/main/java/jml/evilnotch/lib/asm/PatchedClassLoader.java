@@ -18,9 +18,9 @@ import java.util.Set;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 
+import jml.evilnotch.lib.array.DummyMap;
 import jml.evilnotch.lib.minecraft.CrashReport;
 import jml.evilnotch.lib.reflect.ReflectionHandler;
-import jml.evilnotch.lib.simple.DummyMap;
 import net.minecraft.launchwrapper.IClassNameTransformer;
 import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraft.launchwrapper.Launch;

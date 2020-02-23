@@ -20,12 +20,12 @@ public class SortedMap<K, V> implements Map<K, V>{
 		
 	}
 	
-	public SortedMap(Collection col, Comparator c) 
+	public SortedMap(Collection col, Comparator<? extends Map.Entry<K, V>> c) 
 	{
 		//TODO:
 	}
 
-	public SortedMap(Map<K, V> map, Comparator c) {
+	public SortedMap(Map<K, V> map, Comparator<? extends Map.Entry<K, V>> c) {
 		// TODO Auto-generated constructor stub
 	}
 

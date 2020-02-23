@@ -695,14 +695,14 @@ public class JavaUtil {
 	}
 	
 	/**
-	 * the array type cannot be casted out of Object[] use toArray(Collection col, Class clazz) instead
+	 * the array type cannot be casted out of Object[] use toArrayStatic(Collection col, Class clazz) instead
 	 */
-	public static Object[] toArray(Collection col)
+	public static Object[] toArrayStatic(Collection col)
 	{
-		return toArray(col, Object.class);
+		return toArrayStatic(col, Object.class);
 	}
 	
-	public static <T> T[] toArray(Collection<T> col, Class<T> clazz)
+	public static <T> T[] toArrayStatic(Collection<T> col, Class<T> clazz)
 	{
 	    T[] li = (T[]) Array.newInstance(clazz, col.size());
 	    int index = 0;
@@ -724,7 +724,7 @@ public class JavaUtil {
 	/**
 	 * get a static array from a list of parameter objects
 	 */
-	public static <T> T[] asArray(T... arr)
+	public static <T> T[] asArrayStatic(T... arr)
 	{
 		return arr;
 	}
@@ -1578,7 +1578,7 @@ public class JavaUtil {
 			}
 		}
 		list.add(str);//add the rest of the string
-		return JavaUtil.toArray(list, String.class);
+		return JavaUtil.toArrayStatic(list, String.class);
 	}
 	
 }

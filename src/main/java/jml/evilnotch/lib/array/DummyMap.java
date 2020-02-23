@@ -1,4 +1,4 @@
-package jml.evilnotch.lib.simple;
+package jml.evilnotch.lib.array;
 
 import java.util.HashMap;
 import java.util.Map;

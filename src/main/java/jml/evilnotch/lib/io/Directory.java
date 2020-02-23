@@ -1,4 +1,4 @@
-package jml.evilnotch.lib.simple;
+package jml.evilnotch.lib.io;
 
 import java.io.File;
 import java.io.IOException;

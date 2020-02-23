@@ -29,12 +29,12 @@ public class SortedList<T> extends ArrayList<T>{
 	/**
 	 * constructs a SortedList with a initial capacity of 10 and a Comparator
 	 */
-	public SortedList(Comparator c)
+	public SortedList(Comparator<? extends T> c)
 	{
 		this(JavaUtil.initCapacity, c);
 	}
 	
-	public SortedList(Collection<T> list, Comparator c)
+	public SortedList(Collection<? extends T> list, Comparator<? extends T> c)
 	{
 		this(list.size() + JavaUtil.initCapacity, c);
 		this.addAll(list);

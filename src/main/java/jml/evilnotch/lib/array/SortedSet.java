@@ -20,7 +20,7 @@ public class SortedSet<T> implements Set<T>{
 		this(null);
 	}
 	
-	public SortedSet(Collection<T> set, Comparator c)
+	public SortedSet(Collection<T> set, Comparator<? extends T> c)
 	{
 		this(c);
 		this.addAll(set);

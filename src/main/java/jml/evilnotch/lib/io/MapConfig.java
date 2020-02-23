@@ -1,4 +1,4 @@
-package jml.evilnotch.lib.simple;
+package jml.evilnotch.lib.io;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -14,26 +14,30 @@ import java.util.TreeMap;
 
 import jml.evilnotch.lib.JavaUtil;
 
-public class SimpleConfig {
+/**
+ * a Config that will only support key=value
+ */
+public class MapConfig {
 	
 	public Map<String, Object> list = new TreeMap<String, Object>();
 	public File file;
 	public char sep;
 	public boolean spacedEnd;
 	public static final String[] types = {"B", "S", "I", "L", "F", "D", "Z", "Str"};
-	public static final String version = "1.0";
+	public static final int build = 2;
+	public static final String version = "1.0-" + build;
 	
-	public SimpleConfig(File f)
+	public MapConfig(File f)
 	{
 		this(f, '=');
 	}
 	
-	public SimpleConfig(File f, char sep)
+	public MapConfig(File f, char sep)
 	{
 		this(f, sep, false);
 	}
 	
-	public SimpleConfig(File f, char sep, boolean spacedEnd)
+	public MapConfig(File f, char sep, boolean spacedEnd)
 	{
 		this.file = new File(f.getAbsolutePath());
 		this.sep = sep;
@@ -61,52 +65,12 @@ public class SimpleConfig {
 		this.file = f.getAbsoluteFile();
 	}
 	
-	public Boolean getBoolean(String key, boolean init)
-	{
-		return (Boolean) get(key, init);
-	}
-	
-	public Byte getByte(String key, byte init)
-	{
-		return (Byte) get(key, init);
-	}
-	
-	public Short getShort(String key, short init)
-	{
-		return (Short) get(key, init);
-	}
-	
-	public Integer getInt(String key, int init)
-	{
-		return (Integer) get(key, init);
-	}
-	
-	public Long getLong(String key, long init)
-	{
-		return (Long) get(key, init);
-	}
-	
-	public Float getFloat(String key, float init)
-	{
-		return (Float) get(key, init);
-	}
-	
-	public Double getDouble(String key, double init)
-	{
-		return (Double) get(key, init);
-	}
-	
-	public String getString(String key, String init) 
-	{
-		return (String) get(key, init);
-	}
-	
 	public void set(String key, Object value)
 	{
 		list.put(key, value);
 	}
 	
-	public Object get(String key, Object init)
+	public <T> T get(String key, T init)
 	{
 		if(key.contains("" + this.sep))
 			throw new IllegalArgumentException("key contains invalid char of:" + this.sep);
@@ -114,9 +78,9 @@ public class SimpleConfig {
 		if(value == null)
 		{
 			list.put(key, init);
-			return init;
+			return (T) init;
 		}
-		return value;
+		return (T) value;
 	}
 	
 	public void clear()
@@ -240,9 +204,9 @@ public class SimpleConfig {
 	@Override
 	public boolean equals(Object other)
 	{
-		if(!(other instanceof SimpleConfig))
+		if(!(other instanceof MapConfig))
 			return false;
-		SimpleConfig cfg = (SimpleConfig)other;
+		MapConfig cfg = (MapConfig)other;
 		return this.list.equals(cfg.list);
 	}
 	
