@@ -37,9 +37,9 @@ public class JSONArray extends ArrayList<Object> implements IGsonable{
 		super(capacity);
 	}
 
-	public JSONArray(Collection collection)
+	public JSONArray(JSONArray collection)
 	{
-		super((Collection)JSONUtil.toJSONValue(collection));
+		super(collection);
 	}
 	
 	public <T> JSONArray(T[] array) 

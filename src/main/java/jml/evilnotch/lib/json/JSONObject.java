@@ -32,9 +32,9 @@ public class JSONObject extends LinkedHashMap<String, Object> implements IGsonab
 		super(capacity);
 	}
 
-	public JSONObject(Map map) 
+	public JSONObject(JSONObject map) 
 	{
-		super((Map)JSONUtil.toJSONValue(map));
+		super(map);
 	}
 	
 	public JSONObject(String json)

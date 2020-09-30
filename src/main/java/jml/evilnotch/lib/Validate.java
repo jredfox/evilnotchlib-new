@@ -4,6 +4,7 @@ public class Validate {
 	
 	public static void nonNull(Object obj)
 	{
+		LaunchClassLoader
 		if(obj == null)
 			throw new NullPointerException();
 	}

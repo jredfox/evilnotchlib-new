@@ -21,8 +21,6 @@ public final class JSONUtil {
 	{
 		if(JavaUtil.isStaticArray(value))
 			throw new IllegalArgumentException("Use JSONArray Objects for non primitive values");
-		else if(value instanceof Map && !(value instanceof JSONObject) || value instanceof Collection && !(value instanceof JSONArray))
-			throw new IllegalArgumentException("Inserted Maps must be JSONObject and Inserted Collections Must be JSONArray");
 		
 		return canPut(value) ? value : value.toString();
 	}

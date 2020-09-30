@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import jml.evilnotch.lib.JavaUtil;
+import jml.evilnotch.lib.Validate;
 import jml.evilnotch.lib.reflect.ReflectionHandler;
 
 /**
@@ -39,12 +40,39 @@ public class SimpleSet<T> implements Set<T>{
 		this.size++;
 		return true;
 	}
+	
+	@Override
+	public boolean remove(Object obj) 
+	{
+		this.size--;
+		return false;//TODO:
+	}
+	
+	@Override
+	public boolean contains(Object compare) 
+	{
+		for(T obj : this)
+		{
+			if(this.compare(compare, obj))
+				return true;
+		}
+		return false;
+	}
+	
+	public boolean compare(Object a, Object b)
+	{
+		return a == null && b == null || a.equals(b);
+	}
 
 	@Override
-	public boolean addAll(Collection<? extends T> arg0)
+	public boolean addAll(Collection<? extends T> col)
 	{
-		// TODO Auto-generated method stub
-		return false;
+		boolean modified = false;
+		for(T obj : col)
+		{
+			modified |= this.add(obj);
+		}
+		return modified;
 	}
 
 	@Override
@@ -56,20 +84,16 @@ public class SimpleSet<T> implements Set<T>{
 	}
 
 	@Override
-	public boolean contains(Object compare) 
+	public boolean containsAll(Collection<?> col) 
 	{
-		for(T obj : this)
+		for(Object obj : col)
 		{
-			if(compare.equals(obj))
-				return true;
+			if(!this.contains(obj))
+			{
+				return false;
+			}
 		}
-		return false;
-	}
-
-	@Override
-	public boolean containsAll(Collection<?> arg0) {
-		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 
 	@Override
@@ -111,22 +135,20 @@ public class SimpleSet<T> implements Set<T>{
 	}
 
 	@Override
-	public boolean remove(Object arg0) {
-		// TODO Auto-generated method stub
-		this.size--;
-		return false;
+	public boolean removeAll(Collection<?> col) 
+	{
+		boolean modified = false;
+		for(Object obj : col)
+		{
+			modified |= this.remove(obj);
+		}
+		return modified;
 	}
 
 	@Override
-	public boolean removeAll(Collection<?> arg0) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean retainAll(Collection<?> arg0) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean retainAll(Collection<?> arg0) 
+	{
+		throw new RuntimeException("What is this?");//TODO:
 	}
 
 	@Override

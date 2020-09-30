@@ -42,11 +42,6 @@ public class JSONSerializer {
 		return (JSONArray) read(new StringReader(str));
 	}
 	
-	public JSONObject readJSONObject(String str)
-	{
-		return (JSONObject) read(new StringReader(str));
-	}
-	
 	public JSONArray readJSONArray(Reader reader)
 	{
 		return (JSONArray) read(reader);
@@ -56,6 +51,12 @@ public class JSONSerializer {
 	{
 		return (JSONObject) read(reader);
 	}
+	
+	public JSONObject readJSONObject(String str)
+	{
+		return (JSONObject) read(new StringReader(str));
+	}
+	
 	
 	public IGsonable read(Reader reader)
 	{
@@ -79,18 +80,12 @@ public class JSONSerializer {
 		try
 		{
 			Gson gson = this.getGson();
-			gson.toJson(json.toGson(), newJsonWriter(gson, writer));
+			gson.toJson(json.toGson(), writer);
 		}
 		catch(Exception e)
 		{
 			e.printStackTrace();
 		}
-	}
-	
-	private static Method newJson = ReflectionHandler.getMethod(Gson.class, "newJsonWriter", Writer.class);
-	public JsonWriter newJsonWriter(Gson gson, Writer writer)
-	{
-		return (JsonWriter) ReflectionHandler.invoke(newJson, gson, writer);
 	}
 	
 	public String toJSONString(IGsonable json) 
